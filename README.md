@@ -1,4 +1,4 @@
-# twitch-chat-connect
+# Twitch Chat Connect
 A super basic client to connect to your Twitch chat fast and easily.
 
 ## Configuration
