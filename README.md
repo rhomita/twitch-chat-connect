@@ -10,11 +10,13 @@ It's recommended to use a second account (not the main one).
 
 ### Example of config.json
 
+```
 {
 	"username": "<your_username",
 	"userToken": "<oauth:your_token_here>",
 	"channelName": "<your_channel_name>"
 }
+```
 
 The username should be the same used to get the user token.
 
