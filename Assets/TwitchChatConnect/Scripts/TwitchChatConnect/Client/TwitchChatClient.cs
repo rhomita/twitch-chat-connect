@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Net.Sockets;
 using System.IO;
 
@@ -8,8 +9,6 @@ public class TwitchChatClient : MonoBehaviour
     [SerializeField] private string configurationPath = "";
     [Header("Command prefix, by default is '!' (only 1 character)")]
     [SerializeField] private string commandPrefix = "!";
-    [Header("Automatic initialize, otherwise it is necessary to call 'Init'")]
-    [SerializeField] private bool automaticInit = true;
 
     private TcpClient twitchClient;
     private StreamReader reader;
@@ -20,7 +19,8 @@ public class TwitchChatClient : MonoBehaviour
     public delegate void OnChatMessageReceived(TwitchChatMessage chatMessage);
     public OnChatMessageReceived onChatMessageReceived;
 
-    private bool hasInitialized = false;
+    public delegate void OnError(string errorMessage);
+    public delegate void OnSuccess();
 
     #region Singleton
     public static TwitchChatClient instance { get; private set; }
@@ -38,29 +38,24 @@ public class TwitchChatClient : MonoBehaviour
     }
     #endregion
 
-    void Start()
-    {
-        if (!automaticInit) return;
-        Init();
-    }
-
-    void Update()
+    void FixedUpdate()
     {
         if (twitchClient == null || !twitchClient.Connected) return;
-        ReadChat();
+        ReadChatLine();
     }
 
-    public void Init()
+    public void Init(OnSuccess onSuccess, OnError onError)
     {
-        if (hasInitialized) return;
-        hasInitialized = true;
+        if (twitchClient != null) return;
 
         // Checks
         if (configurationPath == "") configurationPath = Application.persistentDataPath + "/config.json";
-        if (commandPrefix == "" || commandPrefix == null) commandPrefix = "!";
+        if (String.IsNullOrEmpty(commandPrefix)) commandPrefix = "!";
         if (commandPrefix.Length > 1)
         {
-            Debug.LogError($"TwitchChatClient.Init :: Command prefix length should contain only 1 character. Command prefix: {commandPrefix}");
+            string errorMessage =
+                $"TwitchChatClient.Init :: Command prefix length should contain only 1 character. Command prefix: {commandPrefix}";
+            Debug.LogError(errorMessage);
             return;
         }
 
@@ -82,11 +77,12 @@ public class TwitchChatClient : MonoBehaviour
         writer.Flush();
     }
 
-    private void ReadChat()
+    private void ReadChatLine()
     {
         if (twitchClient.Available <= 0) return;
         var message = reader.ReadLine();
 
+        if (message == null) return;
         if (!message.Contains("PRIVMSG")) return;
 
         var splitPoint = message.IndexOf(commandPrefix, 1);
@@ -103,21 +99,14 @@ public class TwitchChatClient : MonoBehaviour
         onChatMessageReceived?.Invoke(chatMessage);
     }
 
-    public string ReadLine()
+    /*
+     * Sends a chat message.
+     */
+    public bool SendChatMessage(string message)
     {
-        if (twitchClient.Available == 0) return "";
-        return reader.ReadLine();
-    }
-
-    public void SendTwitchChatMessage(string message)
-    {
+        if (twitchClient.Available <= 0) return false;
         writer.WriteLine("PRIVMSG #" + data.channelName + " :/me " + message);
         writer.Flush();
-    }
-
-    public void SendCommand(string command, string parameters)
-    {
-        writer.WriteLine("PRIVMSG #" + data.channelName + " :" + command + " " + parameters);
-        writer.Flush();
+        return true;
     }
 }
