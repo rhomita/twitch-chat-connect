@@ -1,112 +1,173 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 using System.Net.Sockets;
 using System.IO;
+using TwitchChatConnect.Data;
 
-public class TwitchChatClient : MonoBehaviour
+namespace TwitchChatConnect.Client
 {
-    [Header("config.json file with 'username', 'userToken' and 'channelName'")]
-    [SerializeField] private string configurationPath = "";
-    [Header("Command prefix, by default is '!' (only 1 character)")]
-    [SerializeField] private string commandPrefix = "!";
-
-    private TcpClient twitchClient;
-    private StreamReader reader;
-    private StreamWriter writer;
-
-    private TwitchConnectData data;
-
-    public delegate void OnChatMessageReceived(TwitchChatMessage chatMessage);
-    public OnChatMessageReceived onChatMessageReceived;
-
-    public delegate void OnError(string errorMessage);
-    public delegate void OnSuccess();
-
-    #region Singleton
-    public static TwitchChatClient instance { get; private set; }
-    void Awake()
+    public class TwitchChatClient : MonoBehaviour
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    #endregion
+        [Header("config.json file with 'username', 'userToken' and 'channelName'")] 
+        [SerializeField] private string configurationPath = "";
 
-    void FixedUpdate()
-    {
-        if (twitchClient == null || !twitchClient.Connected) return;
-        ReadChatLine();
-    }
+        [Header("Command prefix, by default is '!' (only 1 character)")]
+        [SerializeField] private string commandPrefix = "!";
 
-    public void Init(OnSuccess onSuccess, OnError onError)
-    {
-        if (twitchClient != null) return;
+        private TcpClient twitchClient;
+        private StreamReader reader;
+        private StreamWriter writer;
+        private TwitchConnectData twitchConnectData;
 
-        // Checks
-        if (configurationPath == "") configurationPath = Application.persistentDataPath + "/config.json";
-        if (String.IsNullOrEmpty(commandPrefix)) commandPrefix = "!";
-        if (commandPrefix.Length > 1)
+        public delegate void OnChatMessageReceived(TwitchChatMessage chatMessage);
+        public OnChatMessageReceived onChatMessageReceived;
+
+        public delegate void OnError(string errorMessage);
+        public delegate void OnSuccess();
+
+        #region Singleton
+
+        public static TwitchChatClient instance { get; private set; }
+
+        void Awake()
         {
-            string errorMessage =
-                $"TwitchChatClient.Init :: Command prefix length should contain only 1 character. Command prefix: {commandPrefix}";
-            Debug.LogError(errorMessage);
-            return;
+            if (instance == null)
+            {
+                instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
 
-        data = TwitchConfiguration.Load(configurationPath);
-        if (data == null) return;
-        Login();
-    }
+        #endregion
 
-    private void Login()
-    {
-        twitchClient = new TcpClient("irc.chat.twitch.tv", 6667);
-        reader = new StreamReader(twitchClient.GetStream());
-        writer = new StreamWriter(twitchClient.GetStream());
+        void FixedUpdate()
+        {
+            if (!IsConnected()) return;
+            ReadChatLine();
+        }
 
-        writer.WriteLine("PASS " + data.userToken);
-        writer.WriteLine("NICK " + data.username);
-        writer.WriteLine("USER " + data.username + " 8 * :" + data.username);
-        writer.WriteLine("JOIN #" + data.channelName);
-        writer.Flush();
-    }
+        public void Init(OnSuccess onSuccess, OnError onError)
+        {
+            if (IsConnected())
+            {
+                onSuccess();
+                return;
+            }
 
-    private void ReadChatLine()
-    {
-        if (twitchClient.Available <= 0) return;
-        var message = reader.ReadLine();
+            // Checks
+            if (configurationPath == "") configurationPath = Application.persistentDataPath + "/config.json";
+            if (String.IsNullOrEmpty(commandPrefix)) commandPrefix = "!";
 
-        if (message == null) return;
-        if (!message.Contains("PRIVMSG")) return;
+            if (commandPrefix.Length > 1)
+            {
+                string errorMessage =
+                    $"TwitchChatClient.Init :: Command prefix length should contain only 1 character. Command prefix: {commandPrefix}";
+                onError(errorMessage);
+                return;
+            }
 
-        var splitPoint = message.IndexOf(commandPrefix, 1);
-        var username = message.Substring(0, splitPoint);
-        splitPoint = message.IndexOf(":", 1);
-        message = message.Substring(splitPoint + 1);
-        string[] messages = message.Split(' ');
+            TwitchConfiguration.Load(configurationPath, (data) =>
+            {
+                twitchConnectData = data;
+                Login();
+                onSuccess();
+            }, message => onError(message));
+        }
 
-        if (messages.Length == 0 || messages[0][0] != commandPrefix[0]) return;
+        private void Login()
+        {
+            twitchClient = new TcpClient("irc.chat.twitch.tv", 6667);
+            reader = new StreamReader(twitchClient.GetStream());
+            writer = new StreamWriter(twitchClient.GetStream());
 
-        username = username.Substring(1);
+            writer.WriteLine("PASS " + twitchConnectData.UserToken);
+            writer.WriteLine("NICK " + twitchConnectData.Username);
+            writer.WriteLine("USER " + twitchConnectData.Username + " 8 * :" + twitchConnectData.Username);
+            writer.WriteLine("JOIN #" + twitchConnectData.ChannelName);
+            writer.Flush();
+        }
 
-        TwitchChatMessage chatMessage = new TwitchChatMessage(username, messages);
-        onChatMessageReceived?.Invoke(chatMessage);
-    }
+        private void ReadChatLine()
+        {
+            if (twitchClient.Available <= 0) return;
+            string message = reader.ReadLine();
 
-    /*
-     * Sends a chat message.
-     */
-    public bool SendChatMessage(string message)
-    {
-        if (twitchClient.Available <= 0) return false;
-        writer.WriteLine("PRIVMSG #" + data.channelName + " :/me " + message);
-        writer.Flush();
-        return true;
+            if (message == null) return;
+            if (message.Length == 0) return;
+
+            if (message.Contains("PING"))
+            {
+                writer.WriteLine("PONG #" + twitchConnectData.ChannelName);
+                writer.Flush();
+                return;
+            }
+
+            if (message.Contains("PRIVMSG"))
+            {
+                writer.WriteLine("PONG #" + twitchConnectData.ChannelName);
+                writer.Flush();
+                ReadChatMessage(message);
+                return;
+            }
+            
+            // Implement JOIN and PART. (They are not working very well https://dev.twitch.tv/docs/irc/guide#generic-irc-commands)
+        }
+
+        private void ReadChatMessage(string message)
+        {
+            int splitPoint = message.IndexOf(commandPrefix, 1);
+            if (splitPoint == -1) return;
+
+            string username = message.Substring(0, splitPoint);
+            splitPoint = message.IndexOf(":", 1);
+            message = message.Substring(splitPoint + 1);
+            string[] messages = message.Split(' ');
+
+            if (messages.Length == 0 || messages[0][0] != commandPrefix[0]) return;
+
+            username = username.Substring(1);
+
+            TwitchChatMessage chatMessage = new TwitchChatMessage(username, messages);
+            onChatMessageReceived?.Invoke(chatMessage);
+        }
+
+        /*
+         * Sends a chat message.
+         */
+        public bool SendChatMessage(string message)
+        {
+            if (!IsConnected()) return false;
+            SendTwitchMessage(message);
+            return true;
+        }
+        
+        public bool SendChatMessage(string message, float seconds)
+        {
+            if (!IsConnected()) return false;
+            StartCoroutine(SendTwitchChatMessageWithDelay(message, seconds));
+            return true;
+        }
+    
+        private IEnumerator SendTwitchChatMessageWithDelay(string message, float seconds)
+        {
+            yield return new WaitForSeconds(seconds);
+            SendTwitchMessage(message);
+        }
+
+        private void SendTwitchMessage(string message)
+        {
+            writer.WriteLine("PRIVMSG #" + twitchConnectData.ChannelName + " :/me " + message);
+            writer.Flush();
+        }
+
+        private bool IsConnected()
+        {
+            return twitchClient != null && twitchClient.Connected;
+        }
     }
 }

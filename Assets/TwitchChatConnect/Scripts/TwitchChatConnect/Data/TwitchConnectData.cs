@@ -1,14 +1,19 @@
-﻿[System.Serializable]
-public class TwitchConnectData
-{
-    public string username { get; set; }
-    public string userToken { get; set; }
-    public string channelName { get; set; }
+﻿using System;
 
-    public bool IsValid()
+namespace TwitchChatConnect.Data
+{
+    [System.Serializable]
+    public class TwitchConnectData
     {
-        return (username != "" && username != null)
-            && (userToken != "" && userToken != null)
-            && (channelName != "" && channelName != null);
+        public string Username { get; set; }
+        public string UserToken { get; set; }
+        public string ChannelName { get; set; }
+
+        public bool IsValid()
+        {
+            return !String.IsNullOrEmpty(Username) &&
+                   !String.IsNullOrEmpty(UserToken) &&
+                   !String.IsNullOrEmpty(ChannelName);
+        }
     }
 }

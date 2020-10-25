@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using TwitchChatConnect.Client;
+using TwitchChatConnect.Data;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class Example : MonoBehaviour
@@ -8,14 +10,24 @@ public class Example : MonoBehaviour
 
     void Start()
     {
-        TwitchChatClient.instance.onChatMessageReceived += ShowMessage;
+        TwitchChatClient.instance.Init(() =>
+        {
+            TwitchChatClient.instance.onChatMessageReceived += ShowMessage;
+        }, message =>
+        {
+            // Error when initializing.
+            Debug.LogError(message);
+        });
     }
 
     void ShowMessage(TwitchChatMessage chatMessage)
     {
-        string parameters = string.Join(" - ", chatMessage.parameters);
-        string chatMessageText = $"Command: '{chatMessage.command}' - Sender: {chatMessage.sender} - Parameters: {parameters}";
+        string parameters = string.Join(" - ", chatMessage.Parameters);
+        string chatMessageText = $"Command: '{chatMessage.Command}' - Sender: {chatMessage.Sender} - Parameters: {parameters}";
 
+        TwitchChatClient.instance.SendChatMessage($"Hello {chatMessage.Sender}! I received your message.");
+        TwitchChatClient.instance.SendChatMessage($"Hello {chatMessage.Sender}! This message will be sent in 5 seconds.", 5);
+        
         GameObject newText = Instantiate(textPrefab, panel);
         newText.GetComponent<Text>().text = chatMessageText;
     }
