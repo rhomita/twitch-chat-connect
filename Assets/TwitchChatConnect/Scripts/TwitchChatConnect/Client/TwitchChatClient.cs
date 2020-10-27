@@ -3,13 +3,15 @@ using System.Collections;
 using UnityEngine;
 using System.Net.Sockets;
 using System.IO;
+using System.Text.RegularExpressions;
 using TwitchChatConnect.Data;
+using TwitchChatConnect.Manager;
 
 namespace TwitchChatConnect.Client
 {
     public class TwitchChatClient : MonoBehaviour
     {
-        [Header("config.json file with 'username', 'userToken' and 'channelName'")] 
+        [Header("config.json file with 'username', 'userToken' and 'channelName'")]
         [SerializeField] private string configurationPath = "";
 
         [Header("Command prefix, by default is '!' (only 1 character)")]
@@ -19,6 +21,14 @@ namespace TwitchChatConnect.Client
         private StreamReader reader;
         private StreamWriter writer;
         private TwitchConnectData twitchConnectData;
+
+        private static string COMMAND_JOIN = "JOIN";
+        private static string COMMAND_PART = "PART";
+        private static string COMMAND_MESSAGE = "PRIVMSG";
+
+        private Regex joinRegexp = new Regex(@":(.+)!.*JOIN"); // :<user>!<user>@<user>.tmi.twitch.tv JOIN #<channel>
+        private Regex partRegexp = new Regex(@":(.+)!.*PART"); // :<user>!<user>@<user>.tmi.twitch.tv PART #<channel>
+        private Regex messageRegexp = new Regex(@"display\-name=(.+);emotes.*subscriber=(.+);tmi.*user\-id=(.+);.*:(.*)!.*PRIVMSG.+:(.*)");
 
         public delegate void OnChatMessageReceived(TwitchChatMessage chatMessage);
         public OnChatMessageReceived onChatMessageReceived;
@@ -85,10 +95,15 @@ namespace TwitchChatConnect.Client
             reader = new StreamReader(twitchClient.GetStream());
             writer = new StreamWriter(twitchClient.GetStream());
 
-            writer.WriteLine("PASS " + twitchConnectData.UserToken);
-            writer.WriteLine("NICK " + twitchConnectData.Username);
-            writer.WriteLine("USER " + twitchConnectData.Username + " 8 * :" + twitchConnectData.Username);
-            writer.WriteLine("JOIN #" + twitchConnectData.ChannelName);
+            writer.WriteLine($"PASS {twitchConnectData.UserToken}");
+            writer.WriteLine($"NICK {twitchConnectData.Username}");
+            writer.WriteLine($"USER {twitchConnectData.Username} 8 * :{twitchConnectData.Username}");
+            writer.WriteLine($"JOIN #{twitchConnectData.ChannelName}");
+
+            writer.WriteLine("CAP REQ :twitch.tv/tags");
+            writer.WriteLine("CAP REQ :twitch.tv/commands");
+            writer.WriteLine("CAP REQ :twitch.tv/membership");
+
             writer.Flush();
         }
 
@@ -102,57 +117,60 @@ namespace TwitchChatConnect.Client
 
             if (message.Contains("PING"))
             {
-                writer.WriteLine("PONG #" + twitchConnectData.ChannelName);
+                writer.WriteLine($"PONG #{twitchConnectData.ChannelName}");
                 writer.Flush();
                 return;
             }
 
-            if (message.Contains("PRIVMSG"))
+            if (message.Contains(COMMAND_MESSAGE))
             {
-                writer.WriteLine("PONG #" + twitchConnectData.ChannelName);
-                writer.Flush();
                 ReadChatMessage(message);
-                return;
             }
-            
-            // Implement JOIN and PART. (They are not working very well https://dev.twitch.tv/docs/irc/guide#generic-irc-commands)
+            else if (message.Contains(COMMAND_JOIN))
+            {
+                string username = joinRegexp.Match(message).Groups[1].Value;
+                TwitchUserManager.AddUser(username);
+            }
+            else if (message.Contains(COMMAND_PART))
+            {
+                string username = partRegexp.Match(message).Groups[1].Value;
+                TwitchUserManager.RemoveUser(username);
+            }
         }
 
         private void ReadChatMessage(string message)
         {
-            int splitPoint = message.IndexOf(commandPrefix, 1);
-            if (splitPoint == -1) return;
+            string displayName = messageRegexp.Match(message).Groups[1].Value;
+            bool isSub = messageRegexp.Match(message).Groups[2].Value == "1";
+            string idUser = messageRegexp.Match(message).Groups[3].Value;
+            string username = messageRegexp.Match(message).Groups[4].Value;
+            string messageSent = messageRegexp.Match(message).Groups[5].Value;
 
-            string username = message.Substring(0, splitPoint);
-            splitPoint = message.IndexOf(":", 1);
-            message = message.Substring(splitPoint + 1);
-            string[] messages = message.Split(' ');
-
+            string[] messages = messageSent.Split(' ');
+            
             if (messages.Length == 0 || messages[0][0] != commandPrefix[0]) return;
-
-            username = username.Substring(1);
-
-            TwitchChatMessage chatMessage = new TwitchChatMessage(username, messages);
+            
+            TwitchUser twitchUser = TwitchUserManager.AddUser(username);
+            twitchUser.SetData(idUser, displayName, isSub);
+            
+            TwitchChatMessage chatMessage = new TwitchChatMessage(twitchUser, messages);
             onChatMessageReceived?.Invoke(chatMessage);
         }
 
-        /*
-         * Sends a chat message.
-         */
         public bool SendChatMessage(string message)
         {
             if (!IsConnected()) return false;
             SendTwitchMessage(message);
             return true;
         }
-        
+
         public bool SendChatMessage(string message, float seconds)
         {
             if (!IsConnected()) return false;
             StartCoroutine(SendTwitchChatMessageWithDelay(message, seconds));
             return true;
         }
-    
+
         private IEnumerator SendTwitchChatMessageWithDelay(string message, float seconds)
         {
             yield return new WaitForSeconds(seconds);
@@ -161,7 +179,7 @@ namespace TwitchChatConnect.Client
 
         private void SendTwitchMessage(string message)
         {
-            writer.WriteLine("PRIVMSG #" + twitchConnectData.ChannelName + " :/me " + message);
+            writer.WriteLine($"PRIVMSG #{twitchConnectData.ChannelName} :/me {message}");
             writer.Flush();
         }
 
