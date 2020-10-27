@@ -22,7 +22,7 @@ The username should be the same used to get the user token.
 
 A more detailed explanation can be found in the documentation:
 
-https://github.com/rhomita/twitch-chat-connect/blob/master/Assets/TwitchChatConnect/Documentation/Twitch%20Chat%20Connect%20-%20Documentation%20v1.0.0.pdf.
+https://github.com/rhomita/twitch-chat-connect/blob/master/Assets/TwitchChatConnect/Documentation/Twitch%20Chat%20Connect%20-%20Documentation%20v1.2.0.pdf.
 
 ## Dependencies
 

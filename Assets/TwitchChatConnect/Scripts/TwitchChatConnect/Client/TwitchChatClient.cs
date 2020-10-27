@@ -11,10 +11,10 @@ namespace TwitchChatConnect.Client
 {
     public class TwitchChatClient : MonoBehaviour
     {
-        [Header("config.json file with 'username', 'userToken' and 'channelName'")]
+        [Header("config.json file with 'username', 'userToken' and 'channelName'")] 
         [SerializeField] private string configurationPath = "";
 
-        [Header("Command prefix, by default is '!' (only 1 character)")]
+        [Header("Command prefix, by default is '!' (only 1 character)")] 
         [SerializeField] private string commandPrefix = "!";
 
         private TcpClient twitchClient;
@@ -25,15 +25,29 @@ namespace TwitchChatConnect.Client
         private static string COMMAND_JOIN = "JOIN";
         private static string COMMAND_PART = "PART";
         private static string COMMAND_MESSAGE = "PRIVMSG";
+        private static string CUSTOM_REWARD_TEXT = "custom-reward-id";
 
         private Regex joinRegexp = new Regex(@":(.+)!.*JOIN"); // :<user>!<user>@<user>.tmi.twitch.tv JOIN #<channel>
         private Regex partRegexp = new Regex(@":(.+)!.*PART"); // :<user>!<user>@<user>.tmi.twitch.tv PART #<channel>
-        private Regex messageRegexp = new Regex(@"display\-name=(.+);emotes.*subscriber=(.+);tmi.*user\-id=(.+);.*:(.*)!.*PRIVMSG.+:(.*)");
+
+        private Regex messageRegexp =
+            new Regex(@"display\-name=(.+);emotes.*subscriber=(.+);tmi.*user\-id=(.+);.*:(.*)!.*PRIVMSG.+:(.*)");
+
+        private Regex rewardRegexp =
+            new Regex(
+                @"custom\-reward\-id=(.+);display\-name=(.+);emotes.*subscriber=(.+);tmi.*user\-id=(.+);.*:(.*)!.*PRIVMSG.+:(.*)");
 
         public delegate void OnChatMessageReceived(TwitchChatMessage chatMessage);
         public OnChatMessageReceived onChatMessageReceived;
+        
+        public delegate void OnChatCommandReceived(TwitchChatCommand chatCommand);
+        public OnChatCommandReceived onChatCommandReceived;
+        
+        public delegate void OnChatRewardReceived(TwitchChatReward chatReward);
+        public OnChatRewardReceived onChatRewardReceived;
 
         public delegate void OnError(string errorMessage);
+
         public delegate void OnSuccess();
 
         #region Singleton
@@ -124,7 +138,14 @@ namespace TwitchChatConnect.Client
 
             if (message.Contains(COMMAND_MESSAGE))
             {
-                ReadChatMessage(message);
+                if (message.Contains(CUSTOM_REWARD_TEXT))
+                {
+                    ReadChatReward(message);
+                }
+                else
+                {
+                    ReadChatMessage(message);
+                }
             }
             else if (message.Contains(COMMAND_JOIN))
             {
@@ -146,15 +167,37 @@ namespace TwitchChatConnect.Client
             string username = messageRegexp.Match(message).Groups[4].Value;
             string messageSent = messageRegexp.Match(message).Groups[5].Value;
 
-            string[] messages = messageSent.Split(' ');
-            
-            if (messages.Length == 0 || messages[0][0] != commandPrefix[0]) return;
+            TwitchUser twitchUser = TwitchUserManager.AddUser(username);
+            twitchUser.SetData(idUser, displayName, isSub);
+
+            if (messageSent.Length == 0) return;
+
+            if (messageSent[0] == commandPrefix[0])
+            {
+                TwitchChatCommand chatCommand = new TwitchChatCommand(twitchUser, messageSent);
+                onChatCommandReceived?.Invoke(chatCommand);
+            }
+            else
+            {
+                TwitchChatMessage chatMessage = new TwitchChatMessage(twitchUser, messageSent);
+                onChatMessageReceived?.Invoke(chatMessage);
+            }
+        }
+
+        private void ReadChatReward(string message)
+        {
+            string customRewardId = rewardRegexp.Match(message).Groups[1].Value;
+            string displayName = rewardRegexp.Match(message).Groups[2].Value;
+            bool isSub = rewardRegexp.Match(message).Groups[3].Value == "1";
+            string idUser = rewardRegexp.Match(message).Groups[4].Value;
+            string username = rewardRegexp.Match(message).Groups[5].Value;
+            string messageSent = rewardRegexp.Match(message).Groups[6].Value;
             
             TwitchUser twitchUser = TwitchUserManager.AddUser(username);
             twitchUser.SetData(idUser, displayName, isSub);
             
-            TwitchChatMessage chatMessage = new TwitchChatMessage(twitchUser, messages);
-            onChatMessageReceived?.Invoke(chatMessage);
+            TwitchChatReward chatReward = new TwitchChatReward(twitchUser, messageSent, customRewardId);
+            onChatRewardReceived?.Invoke(chatReward);
         }
 
         public bool SendChatMessage(string message)

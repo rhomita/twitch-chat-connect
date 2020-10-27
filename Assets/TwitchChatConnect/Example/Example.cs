@@ -13,6 +13,9 @@ public class Example : MonoBehaviour
         TwitchChatClient.instance.Init(() =>
             {
                 TwitchChatClient.instance.onChatMessageReceived += ShowMessage;
+                TwitchChatClient.instance.onChatCommandReceived += ShowCommand;
+                TwitchChatClient.instance.onChatRewardReceived += ShowReward;
+                
             },
             message =>
             {
@@ -21,17 +24,34 @@ public class Example : MonoBehaviour
             });
     }
 
+    void ShowCommand(TwitchChatCommand chatCommand)
+    {
+        string parameters = string.Join(" - ", chatCommand.Parameters);
+        string message =
+            $"Command: '{chatCommand.Command}' - Username: {chatCommand.User.DisplayName} - Sub: {chatCommand.User.IsSub} - Parameters: {parameters}";
+
+        TwitchChatClient.instance.SendChatMessage($"Hello {chatCommand.User.DisplayName}! I received your message.");
+        TwitchChatClient.instance.SendChatMessage(
+            $"Hello {chatCommand.User.DisplayName}! This message will be sent in 5 seconds.", 5);
+
+        AddText(message);
+    }
+
+    void ShowReward(TwitchChatReward chatReward)
+    {
+        string message = $"Reward unlocked by {chatReward.User.DisplayName} - Reward ID: {chatReward.CustomRewardId} - Message: {chatReward.Message}";
+        AddText(message);
+    }
+    
     void ShowMessage(TwitchChatMessage chatMessage)
     {
-        string parameters = string.Join(" - ", chatMessage.Parameters);
-        string chatMessageText =
-            $"Command: '{chatMessage.Command}' - Username: {chatMessage.User.DisplayName} - Sub: {chatMessage.User.IsSub} - Parameters: {parameters}";
+        string message = $"Message by {chatMessage.User.DisplayName} - Message: {chatMessage.Message}";
+        AddText(message);
+    }
 
-        TwitchChatClient.instance.SendChatMessage($"Hello {chatMessage.User.DisplayName}! I received your message.");
-        TwitchChatClient.instance.SendChatMessage(
-            $"Hello {chatMessage.User.DisplayName}! This message will be sent in 5 seconds.", 5);
-
+    private void AddText( string message)
+    {
         GameObject newText = Instantiate(textPrefab, panel);
-        newText.GetComponent<Text>().text = chatMessageText;
+        newText.GetComponent<Text>().text = message;   
     }
 }

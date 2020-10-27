@@ -1,24 +1,18 @@
-﻿using System.Text.RegularExpressions;
-
-namespace TwitchChatConnect.Data
+﻿namespace TwitchChatConnect.Data
 {
     public class TwitchChatMessage
     {
-        public TwitchUser User { get; private set; }
-        public string Command { get; private set; }
-        public string[] Parameters { get; private set; }
+        public TwitchUser User { get; protected set; }
+        public string Message { get; protected set; }
 
-        public TwitchChatMessage(TwitchUser _sender, string[] _parameters)
+        public TwitchChatMessage()
         {
-            Parameters = new string[_parameters.Length - 1];
-            Command = _parameters[0].ToLower();
-
-            for (int i = 1; i < _parameters.Length; i++)
-            {
-                Parameters[i - 1] = Regex.Replace(_parameters[i].ToLower(), "@", "");
-            }
-
-            User = _sender;
+        }
+        
+        public TwitchChatMessage(TwitchUser user, string message)
+        {
+            Message = message;
+            User = user;
         }
     }
 }
