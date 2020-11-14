@@ -4,14 +4,11 @@ namespace TwitchChatConnect.Data
 {
     public class TwitchChatCommand : TwitchChatMessage
     {
-        public string Command { get; private set; }
-        public string[] Parameters { get; private set; }
+        public string Command { get; }
+        public string[] Parameters { get; }
 
-        public TwitchChatCommand(TwitchUser user, string message)
+        public TwitchChatCommand(TwitchUser user, string message, int bits) : base(user, message, bits)
         {
-            User = user;
-            Message = message;
-
             string[] parameters = message.Split(' ');
 
             Parameters = new string[parameters.Length - 1];

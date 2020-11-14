@@ -164,9 +164,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bd11f9edb5570848b43e64743c5f4d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  configurationPath: 
   commandPrefix: '!'
-  automaticInit: 1
+  initTwitchConnectData: {fileID: 11400000, guid: e33434cae905fef48a0a22ae7fd9ca3f,
+    type: 2}
 --- !u!1 &991003306
 GameObject:
   m_ObjectHideFlags: 0
@@ -244,6 +244,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 0.392}
   m_RaycastTarget: 1
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []

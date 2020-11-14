@@ -6,13 +6,9 @@
         public string Id { get; private set; }
         public bool IsSub { get; private set; }
 
-        private string displayName;
+        private string _displayName;
 
-        public string DisplayName
-        {
-            get => displayName ?? Username;
-            private set => displayName = value;
-        }
+        public string DisplayName => _displayName ?? Username;
 
         public TwitchUser(string username)
         {
@@ -21,7 +17,7 @@
 
         public void SetData(string id, string displayName, bool isSub)
         {
-            this.displayName = displayName;
+            _displayName = displayName;
             IsSub = isSub;
             Id = id;
         }

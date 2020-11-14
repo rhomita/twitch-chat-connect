@@ -2,17 +2,15 @@
 {
     public class TwitchChatMessage
     {
-        public TwitchUser User { get; protected set; }
-        public string Message { get; protected set; }
+        public TwitchUser User { get; }
+        public string Message { get; }
+        public int Bits;
 
-        public TwitchChatMessage()
-        {
-        }
-        
-        public TwitchChatMessage(TwitchUser user, string message)
+        public TwitchChatMessage(TwitchUser user, string message, int bits)
         {
             Message = message;
             User = user;
+            Bits = bits;
         }
     }
 }
