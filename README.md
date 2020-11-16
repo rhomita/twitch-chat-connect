@@ -18,4 +18,4 @@ It's recommended to use a second account (not the main one).
 
 A more detailed explanation can be found in the documentation:
 
-https://github.com/rhomita/twitch-chat-connect/blob/master/Assets/TwitchChatConnect/Documentation/Twitch%20Chat%20Connect%20-%20Documentation%20v1.2.0.pdf.
+https://github.com/rhomita/twitch-chat-connect/blob/master/Assets/TwitchChatConnect/Documentation/Twitch%20Chat%20Connect%20-%20Documentation%20v1.3.0.pdf.
