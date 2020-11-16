@@ -1,5 +1,13 @@
 # Twitch Chat Connect
-A super basic client to connect to your Twitch chat fast and easily.
+It is an IRC client to connect to your twitch chat in a very simple and easy way in Unity.
+
+- User information such as 'sub' status, 'id', 'display name' and 'username'
+- Events when redeeming rewards.
+- Information about amount of bits given in a message.
+- Easy way to access to parameters used in custom commands.
+
+## Asset Store
+Link to download: https://assetstore.unity.com/packages/tools/network/twitch-chat-connect-173828
 
 ## Configuration
 ### How to get your twitch token.
@@ -11,7 +19,3 @@ It's recommended to use a second account (not the main one).
 A more detailed explanation can be found in the documentation:
 
 https://github.com/rhomita/twitch-chat-connect/blob/master/Assets/TwitchChatConnect/Documentation/Twitch%20Chat%20Connect%20-%20Documentation%20v1.2.0.pdf.
-
-## Dependencies
-
-https://assetstore.unity.com/packages/tools/input-management/json-net-for-unity-11347
