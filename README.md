@@ -8,18 +8,6 @@ You can get it by logging in with your twitch account here https://twitchapps.co
 
 It's recommended to use a second account (not the main one).
 
-### Example of config.json
-
-```
-{
-	"username": "<your_username",
-	"userToken": "<oauth:your_token_here>",
-	"channelName": "<your_channel_name>"
-}
-```
-
-The username should be the same used to get the user token.
-
 A more detailed explanation can be found in the documentation:
 
 https://github.com/rhomita/twitch-chat-connect/blob/master/Assets/TwitchChatConnect/Documentation/Twitch%20Chat%20Connect%20-%20Documentation%20v1.2.0.pdf.
