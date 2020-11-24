@@ -12,13 +12,12 @@ namespace TwitchChatConnect.Data
             string[] parameters = message.Split(' ');
 
             Parameters = new string[parameters.Length - 1];
-            Command = parameters[0].ToLower();
+            Command = parameters[0];
 
             for (int i = 1; i < parameters.Length; i++)
             {
                 Parameters[i - 1] = Regex.Replace(parameters[i].ToLower(), "@", "");
             }
-
         }
     }
 }
