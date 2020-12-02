@@ -32,8 +32,6 @@ namespace TwitchChatConnect.Client
         private readonly Regex _joinRegexp = new Regex(@":(.+)!.*JOIN"); // :<user>!<user>@<user>.tmi.twitch.tv JOIN #<channel>
         private readonly Regex _partRegexp = new Regex(@":(.+)!.*PART"); // :<user>!<user>@<user>.tmi.twitch.tv PART #<channel>
 
-        // @badge-info=;badges=moderator/1,bits/1;bits=3;color=#FF00FF;display-name=matnesss;emotes=;flags=;id=1827bd7e-8483-40df-b3d9-496adff8e48a;mod=1;room-id=130747120;subscriber=0;tmi-sent-ts=1605139644053;turbo=0;user-id=145167107;user-type=mod :matnesss!matnesss@matnesss.tmi.twitch.tv PRIVMSG #rhomita :puto cheer1 puto cheer1 puto cheer1
-
         private readonly Regex _messageRegexp =
             new Regex(@"display\-name=(.+);emotes.*subscriber=(.+);tmi.*user\-id=(.+);.*:(.*)!.*PRIVMSG.+:(.*)");
 
