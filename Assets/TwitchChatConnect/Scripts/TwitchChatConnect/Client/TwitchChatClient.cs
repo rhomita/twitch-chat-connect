@@ -39,7 +39,7 @@ namespace TwitchChatConnect.Client
             new Regex(
                 @"custom\-reward\-id=(.+);display\-name=(.+);emotes.*subscriber=(.+);tmi.*user\-id=(.+);.*:(.*)!.*PRIVMSG.+:(.*)");
 
-        private Regex cheerRegexp = new Regex(@"(?:\s|^)cheer([0-9]+)(?:\s|$)");
+        private Regex cheerRegexp = new Regex(@"(?:\s|^)cheer([0-9]+)(?:\s|$)", RegexOptions.IgnoreCase);
 
         public delegate void OnChatMessageReceived(TwitchChatMessage chatMessage);
 
