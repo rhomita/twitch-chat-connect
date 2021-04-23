@@ -13,21 +13,28 @@ namespace TwitchChatConnect.Client
     public class TwitchChatClient : MonoBehaviour
     {
         [Header("Command prefix, by default is '!' (only 1 character)")] [SerializeField]
-        private string commandPrefix = "!";
+        private string _commandPrefix = "!";
 
         [Header("Optional init Twitch configuration")] [SerializeField]
-        private TwitchConnectData initTwitchConnectData;
+        private TwitchConnectData _initTwitchConnectData;
 
+        private OnError _onError;
         private TcpClient _twitchClient;
         private StreamReader _reader;
         private StreamWriter _writer;
 
         private TwitchConnectConfig _twitchConnectConfig;
 
+        private static string COMMAND_NOTICE = "NOTICE";
+        private static string COMMAND_PING = "PING";
+        private static string COMMAND_PONG = "PONG";
         private static string COMMAND_JOIN = "JOIN";
         private static string COMMAND_PART = "PART";
         private static string COMMAND_MESSAGE = "PRIVMSG";
         private static string CUSTOM_REWARD_TEXT = "custom-reward-id";
+
+        // For now we compare against the 'failed message' because there is not a message id for this: https://dev.twitch.tv/docs/irc/msg-id
+        private static string LOGIN_FAILED_MESSAGE = "Login authentication failed";
 
         private readonly Regex _joinRegexp = new Regex(@":(.+)!.*JOIN"); // :<user>!<user>@<user>.tmi.twitch.tv JOIN #<channel>
         private readonly Regex _partRegexp = new Regex(@":(.+)!.*PART"); // :<user>!<user>@<user>.tmi.twitch.tv PART #<channel>
@@ -89,7 +96,7 @@ namespace TwitchChatConnect.Client
         /// </summary>
         public void Init(OnSuccess onSuccess, OnError onError)
         {
-            Init(initTwitchConnectData.TwitchConnectConfig, onSuccess, onError);
+            Init(_initTwitchConnectData.TwitchConnectConfig, onSuccess, onError);
         }
 
         /// <summary>
@@ -116,16 +123,17 @@ namespace TwitchChatConnect.Client
                 return;
             }
 
-            if (String.IsNullOrEmpty(commandPrefix)) commandPrefix = "!";
+            if (String.IsNullOrEmpty(_commandPrefix)) _commandPrefix = "!";
 
-            if (commandPrefix.Length > 1)
+            if (_commandPrefix.Length > 1)
             {
                 string errorMessage =
-                    $"TwitchChatClient.Init :: Command prefix length should contain only 1 character. Command prefix: {commandPrefix}";
+                    $"TwitchChatClient.Init :: Command prefix length should contain only 1 character. Command prefix: {_commandPrefix}";
                 onError(errorMessage);
                 return;
             }
 
+            _onError = onError;
             Login();
             onSuccess();
         }
@@ -156,9 +164,15 @@ namespace TwitchChatConnect.Client
             if (message == null) return;
             if (message.Length == 0) return;
 
-            if (message.Contains("PING"))
+            if (message.Contains(COMMAND_NOTICE) && message.Contains(LOGIN_FAILED_MESSAGE))
             {
-                _writer.WriteLine($"PONG #{_twitchConnectConfig.ChannelName}");
+                _onError?.Invoke(LOGIN_FAILED_MESSAGE);
+                return;
+            }
+
+            if (message.Contains(COMMAND_PING))
+            {
+                _writer.WriteLine($"#{COMMAND_PONG} #{_twitchConnectConfig.ChannelName}");
                 _writer.Flush();
                 return;
             }
@@ -209,7 +223,7 @@ namespace TwitchChatConnect.Client
                 bits += bitsAmount;
             }
 
-            if (messageSent[0] == commandPrefix[0])
+            if (messageSent[0] == _commandPrefix[0])
             {
                 TwitchChatCommand chatCommand = new TwitchChatCommand(twitchUser, messageSent, bits);
                 onChatCommandReceived?.Invoke(chatCommand);

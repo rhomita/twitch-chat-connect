@@ -150,8 +150,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bd11f9edb5570848b43e64743c5f4d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  commandPrefix: '!'
-  initTwitchConnectData: {fileID: 11400000, guid: e33434cae905fef48a0a22ae7fd9ca3f,
+  _commandPrefix: '!'
+  _initTwitchConnectData: {fileID: 11400000, guid: e33434cae905fef48a0a22ae7fd9ca3f,
     type: 2}
 --- !u!4 &50128119
 Transform:
@@ -367,7 +367,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -28.72, y: 14.54}
+  m_AnchoredPosition: {x: -28.71997, y: 14.540009}
   m_SizeDelta: {x: 324.08612, y: 197.50574}
   m_Pivot: {x: 1, y: 0}
 --- !u!114 &1172682688
