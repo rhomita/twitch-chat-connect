@@ -13,6 +13,7 @@ public class Example : MonoBehaviour
     {
         TwitchChatClient.instance.Init(() =>
             {
+                Debug.Log("Connected!");
                 TwitchChatClient.instance.onChatMessageReceived += ShowMessage;
                 TwitchChatClient.instance.onChatCommandReceived += ShowCommand;
                 TwitchChatClient.instance.onChatRewardReceived += ShowReward;

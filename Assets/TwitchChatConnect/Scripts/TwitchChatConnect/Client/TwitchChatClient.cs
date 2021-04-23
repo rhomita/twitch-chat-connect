@@ -19,6 +19,7 @@ namespace TwitchChatConnect.Client
         private TwitchConnectData _initTwitchConnectData;
 
         private OnError _onError;
+        private OnSuccess _onSuccess;
         private TcpClient _twitchClient;
         private StreamReader _reader;
         private StreamWriter _writer;
@@ -26,8 +27,8 @@ namespace TwitchChatConnect.Client
         private TwitchConnectConfig _twitchConnectConfig;
 
         private static string COMMAND_NOTICE = "NOTICE";
-        private static string COMMAND_PING = "PING";
-        private static string COMMAND_PONG = "PONG";
+        private static string COMMAND_PING = "PING :tmi.twitch.tv";
+        private static string COMMAND_PONG = "PONG :tmi.twitch.tv";
         private static string COMMAND_JOIN = "JOIN";
         private static string COMMAND_PART = "PART";
         private static string COMMAND_MESSAGE = "PRIVMSG";
@@ -35,6 +36,8 @@ namespace TwitchChatConnect.Client
 
         // For now we compare against the 'failed message' because there is not a message id for this: https://dev.twitch.tv/docs/irc/msg-id
         private static string LOGIN_FAILED_MESSAGE = "Login authentication failed";
+        // For now we compare against the 'success message' + the username. https://dev.twitch.tv/docs/irc/guide
+        private static string LOGIN_SUCCESS_MESSAGE = ":tmi.twitch.tv 001";
 
         private readonly Regex _joinRegexp = new Regex(@":(.+)!.*JOIN"); // :<user>!<user>@<user>.tmi.twitch.tv JOIN #<channel>
         private readonly Regex _partRegexp = new Regex(@":(.+)!.*PART"); // :<user>!<user>@<user>.tmi.twitch.tv PART #<channel>
@@ -134,8 +137,8 @@ namespace TwitchChatConnect.Client
             }
 
             _onError = onError;
+            _onSuccess = onSuccess;
             Login();
-            onSuccess();
         }
 
         private void Login()
@@ -160,19 +163,26 @@ namespace TwitchChatConnect.Client
         {
             if (_twitchClient.Available <= 0) return;
             string message = _reader.ReadLine();
-
             if (message == null) return;
             if (message.Length == 0) return;
+
+            if (message.StartsWith($"{LOGIN_SUCCESS_MESSAGE} {_twitchConnectConfig.ChannelName}"))
+            {
+                _onSuccess?.Invoke();
+                _onSuccess = null;
+                return;
+            }
 
             if (message.Contains(COMMAND_NOTICE) && message.Contains(LOGIN_FAILED_MESSAGE))
             {
                 _onError?.Invoke(LOGIN_FAILED_MESSAGE);
+                _onError = null;
                 return;
             }
 
             if (message.Contains(COMMAND_PING))
             {
-                _writer.WriteLine($"#{COMMAND_PONG} #{_twitchConnectConfig.ChannelName}");
+                _writer.WriteLine(COMMAND_PONG);
                 _writer.Flush();
                 return;
             }
