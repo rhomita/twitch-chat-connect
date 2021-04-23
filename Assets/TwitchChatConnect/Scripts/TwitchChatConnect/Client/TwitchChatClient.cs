@@ -26,6 +26,8 @@ namespace TwitchChatConnect.Client
 
         private TwitchConnectConfig _twitchConnectConfig;
 
+        private bool _isAuthenticated;
+
         private static string COMMAND_NOTICE = "NOTICE";
         private static string COMMAND_PING = "PING :tmi.twitch.tv";
         private static string COMMAND_PONG = "PONG :tmi.twitch.tv";
@@ -49,7 +51,7 @@ namespace TwitchChatConnect.Client
             new Regex(
                 @"custom\-reward\-id=(.+);display\-name=(.+);emotes.*subscriber=(.+);tmi.*user\-id=(.+);.*:(.*)!.*PRIVMSG.+:(.*)");
 
-        private Regex cheerRegexp = new Regex(@"(?:\s|^)cheer([0-9]+)(?:\s|$)", RegexOptions.IgnoreCase);
+        private Regex _cheerRegexp = new Regex(@"(?:\s|^)cheer([0-9]+)(?:\s|$)", RegexOptions.IgnoreCase);
 
         public delegate void OnChatMessageReceived(TwitchChatMessage chatMessage);
 
@@ -111,7 +113,7 @@ namespace TwitchChatConnect.Client
         {
             _twitchConnectConfig = twitchConnectConfig;
 
-            if (IsConnected())
+            if (IsConnected() && _isAuthenticated)
             {
                 onSuccess();
                 return;
@@ -168,6 +170,7 @@ namespace TwitchChatConnect.Client
 
             if (message.StartsWith($"{LOGIN_SUCCESS_MESSAGE} {_twitchConnectConfig.ChannelName}"))
             {
+                _isAuthenticated = true;
                 _onSuccess?.Invoke();
                 _onSuccess = null;
                 return;
@@ -224,7 +227,7 @@ namespace TwitchChatConnect.Client
 
             if (messageSent.Length == 0) return;
 
-            MatchCollection matches = cheerRegexp.Matches(messageSent);
+            MatchCollection matches = _cheerRegexp.Matches(messageSent);
             foreach (Match match in matches)
             {
                 if (match.Groups.Count != 2) continue; // First group is 'cheerXX', second group is XX.
