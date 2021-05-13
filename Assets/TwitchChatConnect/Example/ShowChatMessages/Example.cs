@@ -1,4 +1,5 @@
-﻿using TwitchChatConnect.Client;
+﻿using System.Linq;
+using TwitchChatConnect.Client;
 using TwitchChatConnect.Config;
 using TwitchChatConnect.Data;
 using UnityEngine;
@@ -31,7 +32,14 @@ public class Example : MonoBehaviour
         TwitchConnectData a = ScriptableObject.CreateInstance<TwitchConnectData>();
         string parameters = string.Join(" - ", chatCommand.Parameters);
         string message =
-            $"Command: '{chatCommand.Command}' - Username: {chatCommand.User.DisplayName} - Bits: {chatCommand.Bits} - Sub: {chatCommand.User.IsSub} - Parameters: {parameters}";
+            $"Command: '{chatCommand.Command}' - " +
+            $"Username: {chatCommand.User.DisplayName} - " +
+            $"Bits: {chatCommand.Bits} - " +
+            $"Sub: {chatCommand.User.IsSub} - " +
+            $"Badges count: {chatCommand.User.Badges.Count} - " +
+            $"Badges: {string.Join("/", chatCommand.User.Badges.Select(badge => badge.Name))} - " +
+            $"Badge versions: {string.Join("/", chatCommand.User.Badges.Select(badge => badge.Version))} - " +
+            $"Parameters: {parameters}";
 
         TwitchChatClient.instance.SendChatMessage($"Hello {chatCommand.User.DisplayName}! I received your message.");
         TwitchChatClient.instance.SendChatMessage(
@@ -42,19 +50,35 @@ public class Example : MonoBehaviour
 
     void ShowReward(TwitchChatReward chatReward)
     {
-        string message = $"Reward unlocked by {chatReward.User.DisplayName} - Reward ID: {chatReward.CustomRewardId} - Message: {chatReward.Message}";
+        string message = 
+            $"Reward unlocked by {chatReward.User.DisplayName} - " +
+            $"Reward ID: {chatReward.CustomRewardId} - " +
+            $"Bits: {chatReward.Bits} - " +
+            $"Sub: {chatReward.User.IsSub} - " +
+            $"Badges count: {chatReward.User.Badges.Count} - " +
+            $"Badges: {string.Join("/", chatReward.User.Badges.Select(badge => badge.Name))} - " +
+            $"Badge versions: {string.Join("/", chatReward.User.Badges.Select(badge => badge.Version))} - " +
+            $"Message: {chatReward.Message}";
         AddText(message);
     }
     
     void ShowMessage(TwitchChatMessage chatMessage)
     {
-        string message = $"Message by {chatMessage.User.DisplayName} - Bits: {chatMessage.Bits} - Sub: {chatMessage.User.IsSub} - Message: {chatMessage.Message}";
+        string message = 
+            $"Message by {chatMessage.User.DisplayName} - " +
+            $"Bits: {chatMessage.Bits} - " +
+            $"Sub: {chatMessage.User.IsSub} - " +
+            $"Badges count: {chatMessage.User.Badges.Count} - " +
+            $"Badges: {string.Join("/", chatMessage.User.Badges.Select(badge => badge.Name))} - " +
+            $"Badge versions: {string.Join("/", chatMessage.User.Badges.Select(badge => badge.Version))} - " +
+            $"Message: {chatMessage.Message}";
         AddText(message);
     }
 
-    private void AddText( string message)
+    private void AddText(string message)
     {
         GameObject newText = Instantiate(textPrefab, panel);
-        newText.GetComponent<Text>().text = message;   
+        newText.GetComponent<Text>().text = message;
+        Debug.Log(message);
     }
 }

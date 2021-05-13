@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using System.Net.Sockets;
 using System.IO;
@@ -12,10 +13,12 @@ namespace TwitchChatConnect.Client
 {
     public class TwitchChatClient : MonoBehaviour
     {
-        [Header("Command prefix, by default is '!' (only 1 character)")] [SerializeField]
+        [Header("Command prefix, by default is '!' (only 1 character)")] 
+        [SerializeField]
         private string _commandPrefix = "!";
 
-        [Header("Optional init Twitch configuration")] [SerializeField]
+        [Header("Optional init Twitch configuration")] 
+        [SerializeField]
         private TwitchConnectData _initTwitchConnectData;
 
         private OnError _onError;
@@ -35,6 +38,8 @@ namespace TwitchChatConnect.Client
         private static string COMMAND_PART = "PART";
         private static string COMMAND_MESSAGE = "PRIVMSG";
         private static string CUSTOM_REWARD_TEXT = "custom-reward-id";
+        private static char BADGES_SEPARATOR = ',';
+        private static char BADGE_SEPARATOR = '/';
 
         // For now we compare against the 'failed message' because there is not a message id for this: https://dev.twitch.tv/docs/irc/msg-id
         private static string LOGIN_FAILED_MESSAGE = "Login authentication failed";
@@ -45,11 +50,10 @@ namespace TwitchChatConnect.Client
         private readonly Regex _partRegexp = new Regex(@":(.+)!.*PART"); // :<user>!<user>@<user>.tmi.twitch.tv PART #<channel>
 
         private readonly Regex _messageRegexp =
-            new Regex(@"display\-name=(.+);emotes.*subscriber=(.+);tmi.*user\-id=(.+);.*:(.*)!.*PRIVMSG.+:(.*)");
+            new Regex(@"badges=(.+?);.*display\-name=(.+?);.*user\-id=(.+?);.*:(.*)!.*PRIVMSG.+:(.*)");
 
         private readonly Regex _rewardRegexp =
-            new Regex(
-                @"custom\-reward\-id=(.+);display\-name=(.+);emotes.*subscriber=(.+);tmi.*user\-id=(.+);.*:(.*)!.*PRIVMSG.+:(.*)");
+            new Regex(@"badges=(.+?);.*custom\-reward\-id=(.+?);.*display\-name=(.+?);.*user\-id=(.+?);.*:(.*)!.*PRIVMSG.+:(.*)");
 
         private Regex _cheerRegexp = new Regex(@"(?:\s|^)cheer([0-9]+)(?:\s|$)", RegexOptions.IgnoreCase);
 
@@ -215,18 +219,20 @@ namespace TwitchChatConnect.Client
 
         private void ReadChatMessage(string message)
         {
-            string displayName = _messageRegexp.Match(message).Groups[1].Value;
-            bool isSub = _messageRegexp.Match(message).Groups[2].Value == "1";
+            string badgesText = _messageRegexp.Match(message).Groups[1].Value;
+            string displayName = _messageRegexp.Match(message).Groups[2].Value;
             string idUser = _messageRegexp.Match(message).Groups[3].Value;
             string username = _messageRegexp.Match(message).Groups[4].Value;
             string messageSent = _messageRegexp.Match(message).Groups[5].Value;
-            int bits = 0;
-
-            TwitchUser twitchUser = TwitchUserManager.AddUser(username);
-            twitchUser.SetData(idUser, displayName, isSub);
 
             if (messageSent.Length == 0) return;
 
+            List<TwitchUserBadge> badges = BuildBadges(badgesText);
+
+            TwitchUser twitchUser = TwitchUserManager.AddUser(username);
+            twitchUser.SetData(idUser, displayName, badges);
+
+            int bits = 0;
             MatchCollection matches = _cheerRegexp.Matches(messageSent);
             foreach (Match match in matches)
             {
@@ -250,18 +256,36 @@ namespace TwitchChatConnect.Client
 
         private void ReadChatReward(string message)
         {
-            string customRewardId = _rewardRegexp.Match(message).Groups[1].Value;
-            string displayName = _rewardRegexp.Match(message).Groups[2].Value;
-            bool isSub = _rewardRegexp.Match(message).Groups[3].Value == "1";
+            string badgesText = _rewardRegexp.Match(message).Groups[1].Value;
+            string customRewardId = _rewardRegexp.Match(message).Groups[2].Value;
+            string displayName = _rewardRegexp.Match(message).Groups[3].Value;
             string idUser = _rewardRegexp.Match(message).Groups[4].Value;
             string username = _rewardRegexp.Match(message).Groups[5].Value;
             string messageSent = _rewardRegexp.Match(message).Groups[6].Value;
 
+            List<TwitchUserBadge> badges = BuildBadges(badgesText);
+
             TwitchUser twitchUser = TwitchUserManager.AddUser(username);
-            twitchUser.SetData(idUser, displayName, isSub);
+            twitchUser.SetData(idUser, displayName, badges);
 
             TwitchChatReward chatReward = new TwitchChatReward(twitchUser, messageSent, customRewardId);
             onChatRewardReceived?.Invoke(chatReward);
+        }
+
+        private static List<TwitchUserBadge> BuildBadges(string badgesText)
+        {
+            List<TwitchUserBadge> badges = new List<TwitchUserBadge>();
+            foreach (string badge in badgesText.Split(BADGES_SEPARATOR))
+            {
+                string[] badgeSplit = badge.Split(BADGE_SEPARATOR);
+                string name = badgeSplit[0];
+                if (badgeSplit.Length != 2) continue; // It should contains two parts <badge name>/<version>
+                string versionText = badgeSplit[1];
+                if (!Int32.TryParse(versionText, out int version)) version = 0;
+                badges.Add(new TwitchUserBadge(name, version));
+            }
+
+            return badges;
         }
 
         /// <summary>
