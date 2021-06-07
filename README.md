@@ -3,6 +3,7 @@ It is an IRC client to connect to your twitch chat in a very simple and easy way
 
 - User information such as 'sub'/'prime'/bits leader status (badges), 'id', 'display name' and 'username'
 - Events when redeeming rewards.
+- Events when a user connects or leaves the chat.
 - Information about amount of bits given in a message.
 - Easy way to access to parameters used in custom commands.
 
