@@ -2,6 +2,7 @@
 using TwitchChatConnect.Client;
 using TwitchChatConnect.Config;
 using TwitchChatConnect.Data;
+using TwitchChatConnect.Manager;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,7 +19,16 @@ public class Example : MonoBehaviour
                 TwitchChatClient.instance.onChatMessageReceived += ShowMessage;
                 TwitchChatClient.instance.onChatCommandReceived += ShowCommand;
                 TwitchChatClient.instance.onChatRewardReceived += ShowReward;
-                
+
+                TwitchUserManager.OnUserAdded += twitchUser =>
+                {
+                    Debug.Log($"{twitchUser.Username} has connected to the chat.");
+                };
+
+                TwitchUserManager.OnUserRemoved += username =>
+                {
+                    Debug.Log($"{username} has left the chat.");
+                };
             },
             message =>
             {
@@ -50,7 +60,7 @@ public class Example : MonoBehaviour
 
     void ShowReward(TwitchChatReward chatReward)
     {
-        string message = 
+        string message =
             $"Reward unlocked by {chatReward.User.DisplayName} - " +
             $"Reward ID: {chatReward.CustomRewardId} - " +
             $"Bits: {chatReward.Bits} - " +
@@ -61,10 +71,10 @@ public class Example : MonoBehaviour
             $"Message: {chatReward.Message}";
         AddText(message);
     }
-    
+
     void ShowMessage(TwitchChatMessage chatMessage)
     {
-        string message = 
+        string message =
             $"Message by {chatMessage.User.DisplayName} - " +
             $"Bits: {chatMessage.Bits} - " +
             $"Sub: {chatMessage.User.IsSub} - " +
