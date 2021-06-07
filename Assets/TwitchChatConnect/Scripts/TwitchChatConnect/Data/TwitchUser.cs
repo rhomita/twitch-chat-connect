@@ -13,6 +13,7 @@ namespace TwitchChatConnect.Data
         private static string BADGE_BITS_LEADER_NAME = "bits-leader";
         private static string BADGE_BROADCASTER_NAME = "broadcaster";
         private static string BADGE_BITS_NAME = "bits";
+        private static string BADGE_FOUNDER_NAME = "founder";
 
         private List<TwitchUserBadge> _badges;
 
@@ -31,6 +32,7 @@ namespace TwitchChatConnect.Data
         public bool IsBitsLeader => HasBadge(BADGE_BITS_LEADER_NAME);
         public bool IsBroadcaster => HasBadge(BADGE_BROADCASTER_NAME);
         public bool IsBits => HasBadge(BADGE_BITS_NAME);
+        public bool IsFounder => HasBadge(BADGE_FOUNDER_NAME);
 
         public TwitchUser(string username)
         {
