@@ -172,7 +172,7 @@ namespace TwitchChatConnect.Client
             if (message == null) return;
             if (message.Length == 0) return;
 
-            if (message.StartsWith($"{LOGIN_SUCCESS_MESSAGE} {_twitchConnectConfig.ChannelName}"))
+            if (message.StartsWith($"{LOGIN_SUCCESS_MESSAGE} {_twitchConnectConfig.Username}"))
             {
                 _isAuthenticated = true;
                 _onSuccess?.Invoke();
