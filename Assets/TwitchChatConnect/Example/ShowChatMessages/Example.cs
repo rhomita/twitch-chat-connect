@@ -71,6 +71,7 @@ public class Example : MonoBehaviour
             $"Badges count: {chatMessage.User.Badges.Count} - " +
             $"Badges: {string.Join("/", chatMessage.User.Badges.Select(badge => badge.Name))} - " +
             $"Badge versions: {string.Join("/", chatMessage.User.Badges.Select(badge => badge.Version))} - " +
+            $"Is highlighted: {chatMessage.IsHighlighted} - " +
             $"Message: {chatMessage.Message}";
         AddText(message);
     }

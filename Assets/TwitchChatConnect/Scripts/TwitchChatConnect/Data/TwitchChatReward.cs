@@ -6,7 +6,7 @@ namespace TwitchChatConnect.Data
     {
         public string CustomRewardId { get; }
 
-        public TwitchChatReward(TwitchUser user, string message, string customRewardId) : base(user, message, 0, false)
+        public TwitchChatReward(TwitchUser user, string message, string customRewardId) : base(user, message, 0)
         {
             CustomRewardId = customRewardId;
         }

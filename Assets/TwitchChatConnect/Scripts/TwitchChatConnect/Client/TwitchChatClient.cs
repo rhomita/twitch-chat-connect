@@ -38,23 +38,32 @@ namespace TwitchChatConnect.Client
         private static string COMMAND_PART = "PART";
         private static string COMMAND_MESSAGE = "PRIVMSG";
         private static string CUSTOM_REWARD_TEXT = "custom-reward-id";
-        private static string HIGHLIGHT_MESSAGE_ID = "msg-id=highlighted-message";
         private static char BADGES_SEPARATOR = ',';
         private static char BADGE_SEPARATOR = '/';
 
         // For now we compare against the 'failed message' because there is not a message id for this: https://dev.twitch.tv/docs/irc/msg-id
         private static string LOGIN_FAILED_MESSAGE = "Login authentication failed";
+
         // For now we compare against the 'success message' + the username. https://dev.twitch.tv/docs/irc/guide
         private static string LOGIN_SUCCESS_MESSAGE = ":tmi.twitch.tv 001";
 
-        private readonly Regex _joinRegexp = new Regex(@":(.+)!.*JOIN"); // :<user>!<user>@<user>.tmi.twitch.tv JOIN #<channel>
-        private readonly Regex _partRegexp = new Regex(@":(.+)!.*PART"); // :<user>!<user>@<user>.tmi.twitch.tv PART #<channel>
+        // Custom error message when the username does not belong to the given user token, but the user token is valid.
+        private static string LOGIN_WRONG_USERNAME =
+            "The user token is correct but it does not belong to the given username.";
+
+        private readonly Regex
+            _joinRegexp = new Regex(@":(.+)!.*JOIN"); // :<user>!<user>@<user>.tmi.twitch.tv JOIN #<channel>
+
+        private readonly Regex
+            _partRegexp = new Regex(@":(.+)!.*PART"); // :<user>!<user>@<user>.tmi.twitch.tv PART #<channel>
 
         private readonly Regex _messageRegexp =
             new Regex(@"badges=(.+?);.*display\-name=(.+?);.*user\-id=(.+?);.*:(.*)!.*PRIVMSG.+:(.*)");
 
         private readonly Regex _rewardRegexp =
             new Regex(@"badges=(.+?);.*custom\-reward\-id=(.+?);.*display\-name=(.+?);.*user\-id=(.+?);.*:(.*)!.*PRIVMSG.+:(.*)");
+
+        private readonly Regex _idMessageRegexp = new Regex(@"msg-id=(.+?);");
 
         private Regex _cheerRegexp = new Regex(@"(?:\s|^)cheer([0-9]+)(?:\s|$)", RegexOptions.IgnoreCase);
 
@@ -156,7 +165,6 @@ namespace TwitchChatConnect.Client
 
             _writer.WriteLine($"PASS {_twitchConnectConfig.UserToken}");
             _writer.WriteLine($"NICK {_twitchConnectConfig.Username}");
-            _writer.WriteLine($"USER {_twitchConnectConfig.Username} 8 * :{_twitchConnectConfig.Username}");
             _writer.WriteLine($"JOIN #{_twitchConnectConfig.ChannelName}");
 
             _writer.WriteLine("CAP REQ :twitch.tv/tags");
@@ -173,11 +181,19 @@ namespace TwitchChatConnect.Client
             if (message == null) return;
             if (message.Length == 0) return;
 
-            if (message.StartsWith($"{LOGIN_SUCCESS_MESSAGE} {_twitchConnectConfig.Username}"))
+            if (message.StartsWith($"{LOGIN_SUCCESS_MESSAGE}"))
             {
-                _isAuthenticated = true;
-                _onSuccess?.Invoke();
-                _onSuccess = null;
+                if (message.StartsWith($"{LOGIN_SUCCESS_MESSAGE} {_twitchConnectConfig.Username}"))
+                {
+                    _isAuthenticated = true;
+                    _onSuccess?.Invoke();
+                    _onSuccess = null;
+                    return;
+                }
+
+                // In this case the user token is valid, but the username does not belong to the given token.
+                _onError?.Invoke(LOGIN_WRONG_USERNAME);
+                _onError = null;
                 return;
             }
 
@@ -228,8 +244,6 @@ namespace TwitchChatConnect.Client
 
             if (messageSent.Length == 0) return;
 
-            bool isHighlighted = message.Contains(HIGHLIGHT_MESSAGE_ID);
-
             List<TwitchUserBadge> badges = BuildBadges(badgesText);
 
             TwitchUser twitchUser = TwitchUserManager.AddUser(username);
@@ -245,14 +259,15 @@ namespace TwitchChatConnect.Client
                 bits += bitsAmount;
             }
 
+            string idMessage = _idMessageRegexp.Match(message).Groups[1].Value;
             if (messageSent[0] == _commandPrefix[0])
             {
-                TwitchChatCommand chatCommand = new TwitchChatCommand(twitchUser, messageSent, bits);
+                TwitchChatCommand chatCommand = new TwitchChatCommand(twitchUser, messageSent, bits, idMessage);
                 onChatCommandReceived?.Invoke(chatCommand);
             }
             else
             {
-                TwitchChatMessage chatMessage = new TwitchChatMessage(twitchUser, messageSent, bits, isHighlighted);
+                TwitchChatMessage chatMessage = new TwitchChatMessage(twitchUser, messageSent, bits, idMessage);
                 onChatMessageReceived?.Invoke(chatMessage);
             }
         }

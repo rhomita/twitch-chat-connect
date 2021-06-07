@@ -10,7 +10,7 @@ namespace TwitchChatConnect.Config
         [SerializeField] private string userToken;
         [SerializeField] private string channelName;
 
-        public string Username => username;
+        public string Username => username.ToLower();
         public string UserToken => userToken;
         public string ChannelName => channelName;
 
