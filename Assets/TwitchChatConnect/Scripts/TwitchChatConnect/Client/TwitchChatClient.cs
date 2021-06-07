@@ -38,6 +38,7 @@ namespace TwitchChatConnect.Client
         private static string COMMAND_PART = "PART";
         private static string COMMAND_MESSAGE = "PRIVMSG";
         private static string CUSTOM_REWARD_TEXT = "custom-reward-id";
+        private static string HIGHLIGHT_MESSAGE_ID = "msg-id=highlighted-message";
         private static char BADGES_SEPARATOR = ',';
         private static char BADGE_SEPARATOR = '/';
 
@@ -227,6 +228,8 @@ namespace TwitchChatConnect.Client
 
             if (messageSent.Length == 0) return;
 
+            bool isHighlighted = message.Contains(HIGHLIGHT_MESSAGE_ID);
+
             List<TwitchUserBadge> badges = BuildBadges(badgesText);
 
             TwitchUser twitchUser = TwitchUserManager.AddUser(username);
@@ -249,7 +252,7 @@ namespace TwitchChatConnect.Client
             }
             else
             {
-                TwitchChatMessage chatMessage = new TwitchChatMessage(twitchUser, messageSent, bits);
+                TwitchChatMessage chatMessage = new TwitchChatMessage(twitchUser, messageSent, bits, isHighlighted);
                 onChatMessageReceived?.Invoke(chatMessage);
             }
         }
