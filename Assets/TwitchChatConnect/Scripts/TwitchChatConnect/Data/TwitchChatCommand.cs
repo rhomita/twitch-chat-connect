@@ -7,7 +7,7 @@ namespace TwitchChatConnect.Data
         public string Command { get; }
         public string[] Parameters { get; }
 
-        public TwitchChatCommand(TwitchUser user, string message, int bits) : base(user, message, bits)
+        public TwitchChatCommand(TwitchUser user, string message, int bits) : base(user, message, bits, false)
         {
             string[] parameters = message.Split(' ');
 
