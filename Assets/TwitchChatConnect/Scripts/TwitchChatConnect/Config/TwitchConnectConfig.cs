@@ -20,12 +20,10 @@ namespace TwitchChatConnect.Config
             this.userToken = userToken;
             this.channelName = channelName;
         }
-        
+
         public bool IsValid()
         {
-            return !String.IsNullOrEmpty(Username) &&
-                   !String.IsNullOrEmpty(UserToken) &&
-                   !String.IsNullOrEmpty(ChannelName);
+            return !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(UserToken) && !string.IsNullOrEmpty(ChannelName);
         }
     }
 }

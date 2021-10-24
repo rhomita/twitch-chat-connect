@@ -15,15 +15,13 @@ namespace TwitchChatConnect.Data
         private static string BADGE_BITS_NAME = "bits";
         private static string BADGE_FOUNDER_NAME = "founder";
 
-        private List<TwitchUserBadge> _badges;
-
         private string _displayName;
 
         public string Username { get; }
         public string Id { get; private set; }
 
         public string DisplayName => _displayName ?? Username;
-        public List<TwitchUserBadge> Badges => _badges;
+        public IReadOnlyList<TwitchUserBadge> Badges { get; private set; }
         public bool IsSub => HasBadge(BADGE_SUB_NAME);
         public bool IsTurbo => HasBadge(BADGE_TURBO_NAME);
         public bool IsPrime => HasBadge(BADGE_PRIME_NAME);
@@ -39,21 +37,21 @@ namespace TwitchChatConnect.Data
             Username = username;
         }
 
-        public void SetData(string id, string displayName, List<TwitchUserBadge> badges)
+        public void SetData(string id, string displayName, IReadOnlyList<TwitchUserBadge> badges)
         {
             Id = id;
-            _badges = badges;
+            Badges = badges;
             _displayName = displayName;
         }
 
         public bool HasBadge(string badgeName)
         {
-            return _badges.Any(badge => badge.Name == badgeName);
+            return Badges.Any(badge => badge.Name == badgeName);
         }
 
         public TwitchUserBadge GetBadge(string badgeName)
         {
-            return _badges.Find(badge => badge.Name == badgeName);
+            return Badges.Where(badge => badge.Name == badgeName).SingleOrDefault();
         }
         
     }
