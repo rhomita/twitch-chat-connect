@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using TwitchChatConnect.Client;
 using TwitchChatConnect.Data;
 using TwitchChatConnect.Manager;
 
-namespace TwitchChatConnect.Client
+namespace TwitchChatConnect.Parser
 {
-    public class TwitchChatMessagePayload
+    public class TwitchChatMessageParser
     {
         public string Id { get; }
         public string Sent { get; }
@@ -13,7 +14,7 @@ namespace TwitchChatConnect.Client
         public int Bits { get; }
         public IReadOnlyList<TwitchUserBadge> Badges { get; }
 
-        public TwitchChatMessagePayload(TwitchCommand command)
+        public TwitchChatMessageParser(TwitchInputLine command)
         {
             Bits = 0;
 

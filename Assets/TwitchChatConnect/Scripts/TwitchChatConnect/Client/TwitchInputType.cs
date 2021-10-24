@@ -1,6 +1,6 @@
 ﻿namespace TwitchChatConnect.Client
 {
-    public enum TwitchCommandType
+    public enum TwitchInputType
     {
         UNKNOWN,
         LOGIN,

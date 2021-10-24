@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   twitchConnectConfig:
     username: francoe1
-    userToken: oauth:fze1bgu2x8nboy4546l44cti4g9on8
+    userToken: 
     channelName: rhomita

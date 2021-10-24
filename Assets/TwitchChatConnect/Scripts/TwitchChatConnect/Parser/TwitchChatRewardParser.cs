@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using TwitchChatConnect.Client;
 using TwitchChatConnect.Data;
 using TwitchChatConnect.Manager;
 
-namespace TwitchChatConnect.Client
+namespace TwitchChatConnect.Parser
 {
-    public class TwitchChatRewardPayload
+    public class TwitchChatRewardParser
     {
         public string BadgesText { get; }
         public string Id { get; }
@@ -12,7 +13,7 @@ namespace TwitchChatConnect.Client
         public IReadOnlyList<TwitchUserBadge> Badges { get; }
         public TwitchUser User { get; }
 
-        public TwitchChatRewardPayload(TwitchCommand command)
+        public TwitchChatRewardParser(TwitchInputLine command)
         {
             BadgesText = TwitchChatRegex.RewardRegex.Match(command.Message).Groups[1].Value;
             Id = TwitchChatRegex.RewardRegex.Match(command.Message).Groups[2].Value;

@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.IO;
 using System.Net.Sockets;
 using TwitchChatConnect.Config;
 using TwitchChatConnect.Data;
 using TwitchChatConnect.Manager;
+using TwitchChatConnect.Parser;
 using UnityEngine;
-using static PlasticPipe.PlasticProtocol.Messages.NegotiationCommand;
 
 namespace TwitchChatConnect.Client
 {
@@ -160,7 +159,7 @@ namespace TwitchChatConnect.Client
                 _twitchClient.Close();
                 _twitchClient.Dispose();
                 _twitchClient = null;
-                Debug.LogWarning($"Twitch Disconnect");
+                Debug.Log($"<color=orange>Twitch Disconnected</color>");
             }
             catch { }
         }
@@ -169,19 +168,19 @@ namespace TwitchChatConnect.Client
         {
             if (_twitchClient.Available <= 0) return;
             string source = _reader.ReadLine();
-            TwitchCommand command = new TwitchCommand(source, _commandPrefix);
+            TwitchInputLine inputLine = new TwitchInputLine(source, _commandPrefix);
 
-            if (command.Type != TwitchCommandType.UNKNOWN)
+            if (inputLine.Type != TwitchInputType.UNKNOWN)
             {
-                string log = $"{command.UserName}|{command.Type}|{command.Message}|[{source}]\n\n\n";
-                File.AppendAllText(@"E:\WindowsUser\Documents\Unity Projects\rhomita\twitch-chat-connect\twitch.log", log);
+                string log = $"{inputLine.UserName}|{inputLine.Type}|{inputLine.Message}|[{source}]\n\n\n";
+                File.AppendAllText($"{Application.dataPath.Replace("/Assets", "")}/debug.log", log);
                 Debug.LogWarning(log);
             }
 
-            switch (command.Type)
+            switch (inputLine.Type)
             {
-                case TwitchCommandType.LOGIN:
-                    if (command.IsValidLogin(_twitchConnectConfig))
+                case TwitchInputType.LOGIN:
+                    if (inputLine.IsValidLogin(_twitchConnectConfig))
                     {
                         _isAuthenticated = true;
                         _onSuccess?.Invoke();
@@ -196,43 +195,43 @@ namespace TwitchChatConnect.Client
                     }
                     break;
 
-                case TwitchCommandType.NOTICE:
+                case TwitchInputType.NOTICE:
                     _onError?.Invoke(LOGIN_FAILED_MESSAGE);
                     _onError = null;
                     break;
 
-                case TwitchCommandType.PING:
+                case TwitchInputType.PING:
                     _writer.WriteLine(COMMAND_PONG);
                     _writer.Flush();
                     break;
 
-                case TwitchCommandType.MESSAGE_COMMAND:
+                case TwitchInputType.MESSAGE_COMMAND:
                     {
-                        TwitchChatMessagePayload payload = new TwitchChatMessagePayload(command);
+                        TwitchChatMessageParser payload = new TwitchChatMessageParser(inputLine);
                         TwitchChatCommand chatCommand = new TwitchChatCommand(payload.User, payload.Sent, payload.Bits, payload.Id);
                         onChatCommandReceived?.Invoke(chatCommand);
                     }
                     break;
 
-                case TwitchCommandType.MESSAGE_CHAT:
+                case TwitchInputType.MESSAGE_CHAT:
                     {
-                        TwitchChatMessagePayload payload = new TwitchChatMessagePayload(command);
+                        TwitchChatMessageParser payload = new TwitchChatMessageParser(inputLine);
                         TwitchChatMessage chatMessage = new TwitchChatMessage(payload.User, payload.Sent, payload.Bits, payload.Id);
                         onChatMessageReceived?.Invoke(chatMessage);
                     }
                     break;
 
-                case TwitchCommandType.MESSAGE_REWARD:
+                case TwitchInputType.MESSAGE_REWARD:
                     {
-                        TwitchChatRewardPayload payload = new TwitchChatRewardPayload(command);
+                        TwitchChatRewardParser payload = new TwitchChatRewardParser(inputLine);
                         TwitchChatReward chatReward = new TwitchChatReward(payload.User, payload.Sent, payload.Id);
                         onChatRewardReceived?.Invoke(chatReward);
                     }
                     break;
 
-                case TwitchCommandType.JOIN: TwitchUserManager.AddUser(command.UserName); break;
+                case TwitchInputType.JOIN: TwitchUserManager.AddUser(inputLine.UserName); break;
 
-                case TwitchCommandType.PART: TwitchUserManager.RemoveUser(command.UserName); break;
+                case TwitchInputType.PART: TwitchUserManager.RemoveUser(inputLine.UserName); break;
             }
         }
 
