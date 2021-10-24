@@ -55,7 +55,7 @@ namespace TwitchChatConnect.Tests
             TwitchCommandTestAttributes commandPayload = null;
             bool hasError = false;
             _handler.Register<TwitchCommandTestAttributes>(COMMAND_NAME, (payload) => commandPayload = payload);
-            _handler.Logger.ErrorHandler += e => hasError = true; 
+            _handler.Logger.ErrorHandler += e => hasError = true;
             _handler.ProcessCommand(_command);
             Assert.IsTrue(hasError);
         }

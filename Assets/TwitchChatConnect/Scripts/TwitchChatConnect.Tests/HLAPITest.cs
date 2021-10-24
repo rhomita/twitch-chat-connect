@@ -36,7 +36,7 @@ namespace TwitchChatConnect.Tests
         {
             Initialize();
             Assert.IsTrue(_handler.Register<TwitchCommandEmpty>(COMMAND_NAME, (payload) => { }));
-            Assert.IsFalse(_handler.Register<TwitchCommandEmpty>(COMMAND_NAME, (payload) => { }));            
+            Assert.IsFalse(_handler.Register<TwitchCommandEmpty>(COMMAND_NAME, (payload) => { }));
         }
 
         [Test(Description = "Verificar que se puede procesar un comando registrado")]

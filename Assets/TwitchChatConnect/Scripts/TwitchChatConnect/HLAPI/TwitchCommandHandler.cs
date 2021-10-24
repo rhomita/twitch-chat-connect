@@ -9,6 +9,7 @@ namespace TwitchChatConnect.HLAPI
     public class TwitchCommandHandler
     {
         public delegate void CommandHandler<T>(T template) where T : TwitchCommandPayload;
+
         public TwitchCommandLogger Logger { get; private set; } = new TwitchCommandLogger();
 
         private Dictionary<string, Action<TwitchChatCommand>> _registers { get; } = new Dictionary<string, Action<TwitchChatCommand>>();
@@ -63,13 +64,12 @@ namespace TwitchChatConnect.HLAPI
 
                 templateType.BaseType.GetProperty("Command", BindingFlags.Public | BindingFlags.Instance).SetValue(template, command);
 
-                HashSet<TwitchCommandPropertyAttribute> requiredProperties = new HashSet<TwitchCommandPropertyAttribute>();       
-                
+                HashSet<TwitchCommandPropertyAttribute> requiredProperties = new HashSet<TwitchCommandPropertyAttribute>();
+
                 TwitchCommandPropertyAttribute[] attributes = (TwitchCommandPropertyAttribute[])templateType.GetCustomAttributes(typeof(TwitchCommandPropertyAttribute), true);
                 foreach (TwitchCommandPropertyAttribute attribute in attributes)
                     if (attribute.Required)
                         requiredProperties.Add(attribute);
-                
 
                 PropertyInfo[] properties = template.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (PropertyInfo property in properties)

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
 using TwitchChatConnect.Client;
 using TwitchChatConnect.Data;
 using UnityEngine;
@@ -14,14 +12,14 @@ namespace TwitchChatConnect.Example.MiniGame
 
         private Dictionary<string, Vector3> directions;
 
-        void Start()
+        private void Start()
         {
             directions = new Dictionary<string, Vector3>();
             directions.Add("up", Vector3.forward);
             directions.Add("down", Vector3.back);
             directions.Add("right", Vector3.right);
             directions.Add("left", Vector3.left);
-            
+
             TwitchChatClient.instance.Init(() =>
                 {
                     TwitchChatClient.instance.onChatMessageReceived += OnChatMessageReceived;
@@ -38,7 +36,7 @@ namespace TwitchChatConnect.Example.MiniGame
                 });
         }
 
-        void OnChatCommandReceived(TwitchChatCommand chatCommand)
+        private void OnChatCommandReceived(TwitchChatCommand chatCommand)
         {
             if (chatCommand.Command == START_COMMAND)
             {
@@ -64,24 +62,24 @@ namespace TwitchChatConnect.Example.MiniGame
             Debug.Log($"Unknown Command received: {chatCommand.Command}");
         }
 
-        void OnChatRewardReceived(TwitchChatReward chatReward)
+        private void OnChatRewardReceived(TwitchChatReward chatReward)
         {
         }
 
-        void OnChatMessageReceived(TwitchChatMessage chatMessage)
+        private void OnChatMessageReceived(TwitchChatMessage chatMessage)
         {
         }
 
-        void OnMatchBegin()
+        private void OnMatchBegin()
         {
             TwitchChatClient.instance.SendChatMessage("A new game has started");
         }
 
-        void OnMatchEnd(float secondsElapsed)
+        private void OnMatchEnd(float secondsElapsed)
         {
             TwitchChatClient.instance.SendChatMessage("---------------");
             TwitchChatClient.instance.SendChatMessage($"The game has ended, it took {secondsElapsed} seconds.");
-            foreach (KeyValuePair<TwitchUser,UserInfo> user in GameUI.instance.Users)
+            foreach (KeyValuePair<TwitchUser, UserInfo> user in GameUI.instance.Users)
             {
                 TwitchChatClient.instance.SendChatMessage(user.Value.GetText());
             }

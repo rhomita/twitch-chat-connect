@@ -53,6 +53,5 @@ namespace TwitchChatConnect.Data
         {
             return Badges.Where(badge => badge.Name == badgeName).SingleOrDefault();
         }
-        
     }
 }

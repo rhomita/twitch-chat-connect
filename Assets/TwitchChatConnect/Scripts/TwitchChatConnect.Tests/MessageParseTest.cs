@@ -2,7 +2,6 @@ using NUnit.Framework;
 using TwitchChatConnect.Client;
 using TwitchChatConnect.Data;
 using TwitchChatConnect.Parser;
-using UnityEngine;
 
 public class MessageParseTest
 {
@@ -12,7 +11,7 @@ public class MessageParseTest
     public void ReadMessageLoginTest()
     {
         const string PAYLOAD = ":tmi.twitch.tv 001 francoe1 :Welcome, GLHF!";
-        Assert.IsTrue(new TwitchInputLine(PAYLOAD, COMMAND_PREFIX).Type == TwitchInputType.LOGIN);        
+        Assert.IsTrue(new TwitchInputLine(PAYLOAD, COMMAND_PREFIX).Type == TwitchInputType.LOGIN);
     }
 
     [Test(Description = "Verifica que el payload de JOIN se puede parsear")]
@@ -68,7 +67,6 @@ public class MessageParseTest
         TwitchChatMessage chatCommand = new TwitchChatMessage(message.User, message.Sent, message.Bits, message.Id);
         Assert.IsTrue(chatCommand.Message == MESSAGE);
     }
-
 
     [Test(Description = "Verifica que los datos del payload se pueden leer correctamente")]
     public void ReadMessageTest()

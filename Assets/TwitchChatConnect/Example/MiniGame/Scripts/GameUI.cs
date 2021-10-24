@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TwitchChatConnect.Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,8 +13,10 @@ namespace TwitchChatConnect.Example.MiniGame
         public Dictionary<TwitchUser, UserInfo> Users;
 
         #region Singleton
+
         public static GameUI instance { get; private set; }
-        void Awake()
+
+        private void Awake()
         {
             if (instance == null)
             {
@@ -27,13 +28,14 @@ namespace TwitchChatConnect.Example.MiniGame
                 Destroy(gameObject);
             }
         }
-        #endregion
-        
-        void Start()
+
+        #endregion Singleton
+
+        private void Start()
         {
             Users = new Dictionary<TwitchUser, UserInfo>();
         }
-        
+
         public void UpdateUser(TwitchUser user)
         {
             if (!Users.ContainsKey(user))
@@ -68,7 +70,7 @@ namespace TwitchChatConnect.Example.MiniGame
             this.text = text;
             this.name = name;
         }
-        
+
         public void Update()
         {
             count += 1;

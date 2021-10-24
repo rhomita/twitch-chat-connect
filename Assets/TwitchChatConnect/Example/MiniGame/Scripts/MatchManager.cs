@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace TwitchChatConnect.Example.MiniGame
@@ -17,18 +16,22 @@ namespace TwitchChatConnect.Example.MiniGame
         private GameObject player;
         private GameObject goal;
         private GameObject floor;
-        
+
         public delegate void OnMatchBegin();
+
         public OnMatchBegin onMatchBegin;
-        
+
         public delegate void OnMatchEnd(float seconds);
+
         public OnMatchEnd onMatchEnd;
 
         public bool HasStarted { get; private set; }
 
         #region Singleton
+
         public static MatchManager instance { get; private set; }
-        void Awake()
+
+        private void Awake()
         {
             if (instance == null)
             {
@@ -40,8 +43,9 @@ namespace TwitchChatConnect.Example.MiniGame
                 Destroy(gameObject);
             }
         }
-        #endregion
-        
+
+        #endregion Singleton
+
         private void Start()
         {
             HasStarted = false;
@@ -89,13 +93,12 @@ namespace TwitchChatConnect.Example.MiniGame
             float y = transform.position.y + 1;
             float xRandom = transform.position.x + Random.Range(-size, size);
             float zRandom = transform.position.z + Random.Range(-size, size);
-            
+
             player = Instantiate(playerPrefab, new Vector3(xRandom, y, zRandom), Quaternion.identity);
-            
+
             xRandom = transform.position.x + Random.Range(-size, size);
             zRandom = transform.position.z + Random.Range(-size, size);
             goal = Instantiate(goalPrefab, new Vector3(xRandom, y, zRandom), Quaternion.identity);
         }
-        
     }
 }

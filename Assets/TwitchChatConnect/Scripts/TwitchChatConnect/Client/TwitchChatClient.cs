@@ -15,7 +15,6 @@ namespace TwitchChatConnect.Client
         [SerializeField]
         private string _commandPrefix = "!";
 
-
         [Header("Optional init Twitch configuration")]
         [SerializeField]
         private TwitchConnectData _initTwitchConnectData;
@@ -73,7 +72,7 @@ namespace TwitchChatConnect.Client
             }
         }
 
-        #endregion
+        #endregion Singleton
 
         private void FixedUpdate()
         {
@@ -190,7 +189,7 @@ namespace TwitchChatConnect.Client
                     else
                     {
                         _onError?.Invoke(LOGIN_WRONG_USERNAME);
-                        _onError = null;                        
+                        _onError = null;
                         Debug.Log("<color=red>¡Error Twitch Connection!</color>");
                     }
                     break;

@@ -7,7 +7,7 @@
             Name = name;
             Version = version;
         }
-        
+
         public string Name { get; }
         public int Version { get; }
     }

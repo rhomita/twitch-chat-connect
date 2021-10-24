@@ -1,6 +1,4 @@
-﻿using System.Text.RegularExpressions;
-
-namespace TwitchChatConnect.Data
+﻿namespace TwitchChatConnect.Data
 {
     public class TwitchChatReward : TwitchChatMessage
     {

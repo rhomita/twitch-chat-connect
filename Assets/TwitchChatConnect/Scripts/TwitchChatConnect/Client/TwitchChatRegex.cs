@@ -33,7 +33,6 @@ namespace TwitchChatConnect.Client
         public static Regex IdMessageRegex { get; private set; } = new Regex(IdMessageExpression);
         public static Regex CheerRegex { get; private set; } = new Regex(CheerExpression, RegexOptions.IgnoreCase);
 
-
         public static List<TwitchUserBadge> BuildBadges(string badgesText)
         {
             List<TwitchUserBadge> badges = new List<TwitchUserBadge>();

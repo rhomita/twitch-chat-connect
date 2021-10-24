@@ -8,7 +8,7 @@ namespace TwitchChatConnect.Example.MiniGame
 {
     public class GameExpert : MonoBehaviour
     {
-        private TwitchCommandHandler _twitchCommanHandler { get; set; } 
+        private TwitchCommandHandler _twitchCommanHandler { get; set; }
 
         private void Start()
         {
@@ -54,7 +54,7 @@ namespace TwitchChatConnect.Example.MiniGame
             TwitchChatClient.instance.SendChatMessage("A new game has started");
         }
 
-        void OnMatchEnd(float secondsElapsed)
+        private void OnMatchEnd(float secondsElapsed)
         {
             TwitchChatClient.instance.SendChatMessage("---------------");
             TwitchChatClient.instance.SendChatMessage($"The game has ended, it took {secondsElapsed} seconds.");
@@ -66,6 +66,7 @@ namespace TwitchChatConnect.Example.MiniGame
             GameUI.instance.Reset();
         }
     }
+
     public class TwitchCommandEmpty : TwitchCommandPayload
     {
         private static Dictionary<string, Vector3> _directions = new Dictionary<string, Vector3>
