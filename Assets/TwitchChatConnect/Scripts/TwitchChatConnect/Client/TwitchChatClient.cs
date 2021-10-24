@@ -1,10 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.IO;
 using System.Net.Sockets;
 using TwitchChatConnect.Config;
 using TwitchChatConnect.Data;
 using TwitchChatConnect.Manager;
 using UnityEngine;
+using static PlasticPipe.PlasticProtocol.Messages.NegotiationCommand;
 
 namespace TwitchChatConnect.Client
 {
@@ -146,10 +148,34 @@ namespace TwitchChatConnect.Client
             _writer.Flush();
         }
 
+        private void OnApplicationQuit() => CloseTcpClient();
+
+        private void OnDestroy() => CloseTcpClient();
+
+        private void CloseTcpClient()
+        {
+            if (_twitchClient == null) return;
+            try
+            {
+                _twitchClient.Close();
+                _twitchClient.Dispose();
+                _twitchClient = null;
+                Debug.LogWarning($"Twitch Disconnect");
+            }
+            catch { }
+        }
+
         private void ReadChatLine()
         {
             if (_twitchClient.Available <= 0) return;
-            TwitchCommand command = new TwitchCommand(_reader.ReadLine(), _commandPrefix);
+            string source = _reader.ReadLine();
+            TwitchCommand command = new TwitchCommand(source, _commandPrefix);
+
+            if (command.Type != TwitchCommandType.UNKNOWN)
+            {
+                
+                Debug.LogWarning($"{command.UserName}@{command.Type}:{command.Message}");
+            }
 
             switch (command.Type)
             {
@@ -159,11 +185,13 @@ namespace TwitchChatConnect.Client
                         _isAuthenticated = true;
                         _onSuccess?.Invoke();
                         _onSuccess = null;
+                        Debug.Log("<color=green>¡Success Twitch Connection!</color>");
                     }
                     else
                     {
                         _onError?.Invoke(LOGIN_WRONG_USERNAME);
-                        _onError = null;
+                        _onError = null;                        
+                        Debug.Log("<color=red>¡Error Twitch Connection!</color>");
                     }
                     break;
 

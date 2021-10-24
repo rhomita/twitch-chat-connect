@@ -1,6 +1,4 @@
-﻿using System;
-using TwitchChatConnect.Client;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace TwitchChatConnect.Config
 {
