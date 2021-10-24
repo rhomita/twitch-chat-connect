@@ -32,15 +32,26 @@ namespace TwitchChatConnect.HLAPI
             _registers.Add(command, (chatCommand) =>
             {
                 T payload = ParsePayload<T>(chatCommand);
-                if (payload != null) template(payload);
+                if (payload != null)
+                {
+                    template(payload);
+                    Logger.Info($"Execute Command:{chatCommand.Command}");
+                }
             });
             return true;
         }
 
-        public void ProcessCommand(TwitchChatCommand chatCommand)
+        public bool ProcessCommand(TwitchChatCommand chatCommand)
         {
-            if (!_registers.ContainsKey(chatCommand.Command)) Logger.Warning($"The command {chatCommand.Command} is not registered.");
-            else _registers[chatCommand.Command](chatCommand);
+            if (!_registers.ContainsKey(chatCommand.Command))
+            {
+                Logger.Warning($"The command {chatCommand.Command} is not registered.");
+                return false;
+            }
+
+            _registers[chatCommand.Command](chatCommand);
+            Logger.Info($"Process Command:{chatCommand.Command}");
+            return true;
         }
 
         private T ParsePayload<T>(TwitchChatCommand command) where T : TwitchCommandPayload

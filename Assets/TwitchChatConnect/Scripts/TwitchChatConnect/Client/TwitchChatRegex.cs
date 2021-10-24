@@ -21,8 +21,8 @@ namespace TwitchChatConnect.Client
 
         public const string JoinExpression = @":(.+)!.*JOIN";
         public const string PartExpression = @":(.+)!.*PART";
-        public const string MessageExpression = @"badges=(.+?);.*display\-name=(.+?);.*user\-id=(.+?);.*:(.*)!.*PRIVMSG.+:(.*)";
-        public const string RewardExpression = @"badges=(.+?);.*custom\-reward\-id=(.+?);.*display\-name=(.+?);.*user\-id=(.+?);.*:(.*)!.*PRIVMSG.+:(.*)";
+        public const string MessageExpression = @"badges=(.+?);.*display\-name=(.+?);.*user\-id=(.+?);.*:(.*)!.*PRIVMSG.+?:(.*)";
+        public const string RewardExpression = @"badges=(.+?);.*custom\-reward\-id=(.+?);.*display\-name=(.+?);.*user\-id=(.+?);.*:(.*)!.*PRIVMSG.+?:(.*)";
         public const string IdMessageExpression = @"msg-id=(.+?);";
         public const string CheerExpression = @"(?:\s|^)cheer([0-9]+)(?:\s|$)";
 
@@ -32,6 +32,7 @@ namespace TwitchChatConnect.Client
         public static Regex RewardRegex { get; private set; } = new Regex(RewardExpression);
         public static Regex IdMessageRegex { get; private set; } = new Regex(IdMessageExpression);
         public static Regex CheerRegex { get; private set; } = new Regex(CheerExpression, RegexOptions.IgnoreCase);
+
 
         public static List<TwitchUserBadge> BuildBadges(string badgesText)
         {

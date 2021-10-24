@@ -17,25 +17,25 @@ namespace TwitchChatConnect.Example.MiniGame
             TwitchChatClient.instance.Init(() =>
             {
                 TwitchChatClient.instance.onChatMessageReceived += OnChatMessageReceived;
-                TwitchChatClient.instance.onChatCommandReceived += _twitchCommanHandler.ProcessCommand;
+                TwitchChatClient.instance.onChatCommandReceived += (e) => _twitchCommanHandler.ProcessCommand(e);
                 TwitchChatClient.instance.onChatRewardReceived += OnChatRewardReceived;
 
                 MatchManager.instance.onMatchEnd += OnMatchEnd;
                 MatchManager.instance.onMatchBegin += OnMatchBegin;
             }, Debug.LogError);
 
-            _twitchCommanHandler.Register<TwitchCommandEmpty>("start", OnStart);
-            _twitchCommanHandler.Register<TwitchCommandMove>("move", OnMove);
+            _twitchCommanHandler.Register<HLAPI.TwitchCommandEmpty>("start", OnStart);
+            _twitchCommanHandler.Register<TwitchCommandEmpty>("move", OnMove);
         }
 
-        private void OnMove(TwitchCommandMove template)
+        private void OnMove(TwitchCommandEmpty template)
         {
             if (!MatchManager.instance.HasStarted) return;
             GameUI.instance.UpdateUser(template.Command.User);
             MatchManager.instance.Move(template.Value);
         }
 
-        private void OnStart(TwitchCommandEmpty template)
+        private void OnStart(HLAPI.TwitchCommandEmpty template)
         {
             if (MatchManager.instance.HasStarted) return;
             MatchManager.instance.Begin();
@@ -66,7 +66,7 @@ namespace TwitchChatConnect.Example.MiniGame
             GameUI.instance.Reset();
         }
     }
-    public class TwitchCommandMove : TwitchCommandPayload
+    public class TwitchCommandEmpty : TwitchCommandPayload
     {
         private static Dictionary<string, Vector3> _directions = new Dictionary<string, Vector3>
             {

@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using TwitchChatConnect.Client;
 using TwitchChatConnect.Data;
+using UnityEngine;
 
 public class MessageParseTest
 {
@@ -55,6 +56,18 @@ public class MessageParseTest
         TwitchChatMessage chatCommand = new TwitchChatMessage(message.User, message.Sent, message.Bits, message.Id);
         Assert.IsTrue(chatCommand.Message == MESSAGE);
     }
+
+    [Test(Description = "Verifica el texto del mensaje con caracters especiales")]
+    public void ReadMessageChatTextWithEspecialCharacters()
+    {
+        const string MESSAGE = "BEGIN <> !б {} \\ // ' \" :) :| @: #~$%&/()=^^^^^^****ииии END";
+        string PAYLOAD = $"@badge-info=subscriber/1;badges=moderator/1,subscriber/0;client-nonce=b185f1767a4a2a8d5786a41f9de64a77;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=e83072fb-51b3-4217-a746-ff6e23ae09b7;mod=1;room-id=130747120;subscriber=1;tmi-sent-ts=1635094309746;turbo=0;user-id=147383910;user-type=mod :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #rhomita :{MESSAGE}";
+        TwitchCommand command = new TwitchCommand(PAYLOAD, COMMAND_PREFIX);
+        TwitchChatMessagePayload message = new TwitchChatMessagePayload(command);
+        TwitchChatMessage chatCommand = new TwitchChatMessage(message.User, message.Sent, message.Bits, message.Id);
+        Assert.IsTrue(chatCommand.Message == MESSAGE);
+    }
+
 
     [Test(Description = "Verifica que los datos del payload se pueden leer correctamente")]
     public void ReadMessageTest()
