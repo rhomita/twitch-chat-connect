@@ -43,6 +43,10 @@ namespace TwitchChatConnect.Example.MiniGame
 
         private void OnChatRewardReceived(TwitchChatReward chatReward)
         {
+            if(TwitchRewardCollection.instance.TryFind(chatReward.CustomRewardId, out TwitchRewardData reward))
+            {
+                Debug.Log($"OnReward {reward.Name}");
+            }
         }
 
         private void OnChatMessageReceived(TwitchChatMessage chatMessage)

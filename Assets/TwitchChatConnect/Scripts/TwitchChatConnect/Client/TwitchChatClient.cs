@@ -40,16 +40,16 @@ namespace TwitchChatConnect.Client
         public string CommandPrefix => _commandPrefix;
 
         public delegate void OnChatMessageReceived(TwitchChatMessage chatMessage);
-
         public OnChatMessageReceived onChatMessageReceived { get; set; }
 
         public delegate void OnChatCommandReceived(TwitchChatCommand chatCommand);
-
         public OnChatCommandReceived onChatCommandReceived { get; set; }
 
         public delegate void OnChatRewardReceived(TwitchChatReward chatReward);
-
         public OnChatRewardReceived onChatRewardReceived { get; set; }
+
+        public delegate void OnTwitchInputLine(TwitchInputLine twitchInput);
+        public OnTwitchInputLine onTwitchInputLine { get; set; }
 
         public delegate void OnError(string errorMessage);
 
@@ -168,13 +168,7 @@ namespace TwitchChatConnect.Client
             if (_twitchClient.Available <= 0) return;
             string source = _reader.ReadLine();
             TwitchInputLine inputLine = new TwitchInputLine(source, _commandPrefix);
-
-            if (inputLine.Type != TwitchInputType.UNKNOWN)
-            {
-                string log = $"{inputLine.UserName}|{inputLine.Type}|{inputLine.Message}|[{source}]\n\n\n";
-                File.AppendAllText($"{Application.dataPath.Replace("/Assets", "")}/debug.log", log);
-                Debug.LogWarning(log);
-            }
+            onTwitchInputLine?.Invoke(inputLine);            
 
             switch (inputLine.Type)
             {
