@@ -8,10 +8,12 @@ namespace TwitchChatConnect.Example.MiniGame
 {
     public class GameExpert : MonoBehaviour
     {
-        private TwitchCommandHandler _twitchCommanHandler { get; } = new TwitchCommandHandler();
+        private TwitchCommandHandler _twitchCommanHandler { get; set; } 
 
         private void Start()
         {
+            _twitchCommanHandler = new TwitchCommandHandler(TwitchChatClient.instance.CommandPrefix);
+
             TwitchChatClient.instance.Init(() =>
             {
                 TwitchChatClient.instance.onChatMessageReceived += OnChatMessageReceived;

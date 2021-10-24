@@ -173,8 +173,9 @@ namespace TwitchChatConnect.Client
 
             if (command.Type != TwitchCommandType.UNKNOWN)
             {
-                
-                Debug.LogWarning($"{command.UserName}@{command.Type}:{command.Message}");
+                string log = $"{command.UserName}|{command.Type}|{command.Message}|[{source}]\n\n\n";
+                File.AppendAllText(@"E:\WindowsUser\Documents\Unity Projects\rhomita\twitch-chat-connect\twitch.log", log);
+                Debug.LogWarning(log);
             }
 
             switch (command.Type)

@@ -1,60 +1,42 @@
-MESSAGE_COMMAND
-
-@badge-info=;badges=broadcaster/1;client-nonce=9b6a9b8f7d31be5076eb21416a87dae8;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=cb7cc162-c16f-4221-a024-dac9eb4af1f3;mod=0;room-id=147383910;subscriber=0;tmi-sent-ts=1635091381971;turbo=0;user-id=147383910;user-type= :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #francoe1 :!move up
+|LOGIN|:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!
 
 
-LOGIN
-
-:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!
+francoe1|JOIN|:francoe1!francoe1@francoe1.tmi.twitch.tv JOIN #rhomita
 
 
-JOIN
-
-:francoe1!francoe1@francoe1.tmi.twitch.tv JOIN #francoe1
+|MESSAGE_COMMAND|@badge-info=subscriber/1;badges=moderator/1,subscriber/0;client-nonce=5c956a7f0bdad8033b9c23c1ab738381;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=98a7688d-c967-4eb2-8621-dced23546c4d;mod=1;room-id=130747120;subscriber=1;tmi-sent-ts=1635094182381;turbo=0;user-id=147383910;user-type=mod :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #rhomita :!start
 
 
-MESSAGE_COMMAND
-
-@badge-info=;badges=broadcaster/1;client-nonce=eb3494d79e8d6f71398737cb59ceccb0;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=c733ef5d-dd69-4a28-a048-a7182cc995b7;mod=0;room-id=147383910;subscriber=0;tmi-sent-ts=1635091419284;turbo=0;user-id=147383910;user-type= :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #francoe1 :!start
+|MESSAGE_COMMAND|@badge-info=subscriber/1;badges=moderator/1,subscriber/0;client-nonce=af8d3060afb1e349b67f1ecd6da94a5b;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=4957699d-9a64-45a2-a0cb-f781482878b2;mod=1;room-id=130747120;subscriber=1;tmi-sent-ts=1635094185203;turbo=0;user-id=147383910;user-type=mod :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #rhomita :!move up
 
 
-MESSAGE_COMMAND
-
-@badge-info=;badges=broadcaster/1;client-nonce=3dacaa92925ed60344b1897bdd990f2f;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=41d72773-f623-4a14-965a-354ec7ff5a44;mod=0;room-id=147383910;subscriber=0;tmi-sent-ts=1635091428027;turbo=0;user-id=147383910;user-type= :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #francoe1 :!move down
+|MESSAGE_CHAT|@badge-info=subscriber/1;badges=moderator/1,subscriber/0;client-nonce=825803c33032312b951dc3e5849f808c;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=2f580819-afd0-4799-bceb-36595678f4a7;mod=1;room-id=130747120;subscriber=1;tmi-sent-ts=1635094189763;turbo=0;user-id=147383910;user-type=mod :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #rhomita :Prueba
 
 
-LOGIN
-
-:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!
+|LOGIN|:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!|[:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!]
 
 
-LOGIN
-
-:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!
+francoe1|JOIN|:francoe1!francoe1@francoe1.tmi.twitch.tv JOIN #rhomita|[:francoe1!francoe1@francoe1.tmi.twitch.tv JOIN #rhomita]
 
 
-LOGIN
-
-:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!
+|MESSAGE_COMMAND|@badge-info=subscriber/1;badges=moderator/1,subscriber/0;client-nonce=60576a3018294221da54321a7397db58;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=9e4e255d-3c8d-4cdb-88ca-62ab7a3c37a9;mod=1;room-id=130747120;subscriber=1;tmi-sent-ts=1635094303777;turbo=0;user-id=147383910;user-type=mod :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #rhomita :!start|[@badge-info=subscriber/1;badges=moderator/1,subscriber/0;client-nonce=60576a3018294221da54321a7397db58;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=9e4e255d-3c8d-4cdb-88ca-62ab7a3c37a9;mod=1;room-id=130747120;subscriber=1;tmi-sent-ts=1635094303777;turbo=0;user-id=147383910;user-type=mod :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #rhomita :!start]
 
 
-LOGIN
-
-:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!
+|MESSAGE_COMMAND|@badge-info=subscriber/1;badges=moderator/1,subscriber/0;client-nonce=5d0cf1dd753debd1f125ab8a143c3948;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=558cd6e4-38ee-4751-9d89-c23da4fbae54;mod=1;room-id=130747120;subscriber=1;tmi-sent-ts=1635094307374;turbo=0;user-id=147383910;user-type=mod :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #rhomita :!move up|[@badge-info=subscriber/1;badges=moderator/1,subscriber/0;client-nonce=5d0cf1dd753debd1f125ab8a143c3948;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=558cd6e4-38ee-4751-9d89-c23da4fbae54;mod=1;room-id=130747120;subscriber=1;tmi-sent-ts=1635094307374;turbo=0;user-id=147383910;user-type=mod :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #rhomita :!move up]
 
 
-LOGIN
-
-:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!
+|MESSAGE_CHAT|@badge-info=subscriber/1;badges=moderator/1,subscriber/0;client-nonce=b185f1767a4a2a8d5786a41f9de64a77;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=e83072fb-51b3-4217-a746-ff6e23ae09b7;mod=1;room-id=130747120;subscriber=1;tmi-sent-ts=1635094309746;turbo=0;user-id=147383910;user-type=mod :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #rhomita :hola|[@badge-info=subscriber/1;badges=moderator/1,subscriber/0;client-nonce=b185f1767a4a2a8d5786a41f9de64a77;color=;display-name=francoe1;emotes=;first-msg=0;flags=;id=e83072fb-51b3-4217-a746-ff6e23ae09b7;mod=1;room-id=130747120;subscriber=1;tmi-sent-ts=1635094309746;turbo=0;user-id=147383910;user-type=mod :francoe1!francoe1@francoe1.tmi.twitch.tv PRIVMSG #rhomita :hola]
 
 
-LOGIN
-
-:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!
+|LOGIN|:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!|[:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!]
 
 
-LOGIN
+|LOGIN|:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!|[:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!]
 
-:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!
+
+|LOGIN|:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!|[:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!]
+
+
+|LOGIN|:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!|[:tmi.twitch.tv 001 francoe1 :Welcome, GLHF!]
 
 

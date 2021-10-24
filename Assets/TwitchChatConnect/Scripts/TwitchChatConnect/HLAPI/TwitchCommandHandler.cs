@@ -1,58 +1,103 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using TwitchChatConnect.Client;
+using System.Text.RegularExpressions;
 using TwitchChatConnect.Data;
-using UnityEngine;
 
 namespace TwitchChatConnect.HLAPI
 {
     public class TwitchCommandHandler
     {
         public delegate void CommandHandler<T>(T template) where T : TwitchCommandPayload;
+        public TwitchCommandLogger Logger { get; private set; } = new TwitchCommandLogger();
+
         private Dictionary<string, Action<TwitchChatCommand>> _registers { get; } = new Dictionary<string, Action<TwitchChatCommand>>();
+        private string _prefix { get; }
 
-        public void Register<T>(string command, CommandHandler<T> template) where T : TwitchCommandPayload
+        public TwitchCommandHandler(string prefix)
         {
-            string prefix = TwitchChatClient.instance.CommandPrefix;
-            if (!command.StartsWith(prefix)) command = prefix + command;
+            _prefix = prefix;
+        }
 
-            _registers.Add(command, (chatCommand) => template(ReadChatCommand<T>(chatCommand)));
+        public bool Register<T>(string command, CommandHandler<T> template) where T : TwitchCommandPayload
+        {
+            if (!command.StartsWith(_prefix)) command = _prefix + command;
+
+            if (_registers.ContainsKey(command))
+            {
+                Logger.Error($"A record already exists for this command [{command}]");
+                return false;
+            }
+
+            _registers.Add(command, (chatCommand) =>
+            {
+                T payload = ParsePayload<T>(chatCommand);
+                if (payload != null) template(payload);
+            });
+            return true;
         }
 
         public void ProcessCommand(TwitchChatCommand chatCommand)
         {
-            if (!_registers.ContainsKey(chatCommand.Command)) Debug.LogWarning("Command invalid");
+            if (!_registers.ContainsKey(chatCommand.Command)) Logger.Warning($"The command {chatCommand.Command} is not registered.");
             else _registers[chatCommand.Command](chatCommand);
         }
 
-        private T ReadChatCommand<T>(TwitchChatCommand command) where T : TwitchCommandPayload
+        private T ParsePayload<T>(TwitchChatCommand command) where T : TwitchCommandPayload
         {
-            T template = Activator.CreateInstance<T>();
-            Type templateType = template.GetType();
-
-            templateType.BaseType.GetProperty("Command", BindingFlags.Public | BindingFlags.Instance).SetValue(template, command);            
-
-            foreach (PropertyInfo property in template.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            try
             {
-                if(property.GetCustomAttribute(typeof(TwitchCommandPropertyAttribute), true) is TwitchCommandPropertyAttribute attribute)
+                T template = Activator.CreateInstance<T>();
+                Type templateType = template.GetType();
+
+                templateType.BaseType.GetProperty("Command", BindingFlags.Public | BindingFlags.Instance).SetValue(template, command);
+
+                HashSet<TwitchCommandPropertyAttribute> requiredProperties = new HashSet<TwitchCommandPropertyAttribute>();       
+                
+                TwitchCommandPropertyAttribute[] attributes = (TwitchCommandPropertyAttribute[])templateType.GetCustomAttributes(typeof(TwitchCommandPropertyAttribute), true);
+                foreach (TwitchCommandPropertyAttribute attribute in attributes)
+                    if (attribute.Required)
+                        requiredProperties.Add(attribute);
+                
+
+                PropertyInfo[] properties = template.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                foreach (PropertyInfo property in properties)
                 {
-                    if (command.Parameters.Length <= attribute.Position)
+                    if (property.GetCustomAttribute(typeof(TwitchCommandPropertyAttribute), true) is TwitchCommandPropertyAttribute attribute)
                     {
-                        Debug.LogWarning($"The {nameof(T)} command requires the {property.Name} argument.");
-                        return default;
+                        if (command.Parameters.Length <= attribute.Position)
+                        {
+                            Logger.Error($"{nameof(T)} command requires the {property.Name} argument.");
+                            return default;
+                        }
+
+                        string value = command.Parameters[attribute.Position];
+                        if (property.PropertyType == typeof(string)) property.SetValue(template, value);
+                        else if (property.PropertyType == typeof(int) && int.TryParse(Regex.Replace(value, "[^A-Za-z0-9 -]", ""), out int intValue)) property.SetValue(template, intValue);
+                        else if (property.PropertyType == typeof(float) && float.TryParse(value.Replace(".", ",").Replace("f", ""), out float floatValue)) property.SetValue(template, floatValue);
+                        else Logger.Error($"{nameof(T)} command property {property.Name} invalid type, require {property.PropertyType}");
+
+                        requiredProperties.RemoveWhere(x => x.Position == attribute.Position);
                     }
+                }
 
-                    string value = command.Parameters[attribute.Position];
-                    if (property.PropertyType == typeof(string)) property.SetValue(template, value);
-                    else if (property.PropertyType == typeof(int) && int.TryParse(value, out int floatValue)) property.SetValue(template, floatValue);
-                    else if (property.PropertyType == typeof(float) && float.TryParse(value, out float intValue)) property.SetValue(template, intValue);
-                    else Debug.LogWarning($"The {nameof(T)} command property {property.Name} invalid type, require {property.PropertyType}");
-                }                
+                if (requiredProperties.Count > 0)
+                {
+                    string requiredPropertiesString = "";
+                    foreach (TwitchCommandPropertyAttribute attribute in requiredProperties)
+                        requiredPropertiesString += $"{attribute.Position}";
+
+                    Logger.Error($"{nameof(T)} required properties position {requiredPropertiesString}");
+                }
+
+                templateType.GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Invoke(template, null);
+                return template;
             }
-
-            templateType.GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Invoke(template, null);
-            return template;
+            catch (Exception e)
+            {
+                Logger.Error(e.Message);
+                return default;
+            }
         }
     }
 }

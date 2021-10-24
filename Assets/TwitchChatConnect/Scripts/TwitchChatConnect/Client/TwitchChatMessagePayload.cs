@@ -8,7 +8,6 @@ namespace TwitchChatConnect.Client
     public class TwitchChatMessagePayload
     {
         public string Id { get; }
-        public string BadgesText { get; }
         public string Sent { get; }
         public TwitchUser User { get; }
         public int Bits { get; }
@@ -19,13 +18,13 @@ namespace TwitchChatConnect.Client
             Bits = 0;
 
             Id = TwitchChatRegex.IdMessageRegex.Match(command.Message).Groups[1].Value;
-            BadgesText = TwitchChatRegex.MessageRegex.Match(command.Message).Groups[1].Value;
+            string badgesText = TwitchChatRegex.MessageRegex.Match(command.Message).Groups[1].Value;
             string displayName = TwitchChatRegex.MessageRegex.Match(command.Message).Groups[2].Value;
             string idUser = TwitchChatRegex.MessageRegex.Match(command.Message).Groups[3].Value;
             string username = TwitchChatRegex.MessageRegex.Match(command.Message).Groups[4].Value;
             Sent = TwitchChatRegex.MessageRegex.Match(command.Message).Groups[5].Value;
 
-            Badges = TwitchChatRegex.BuildBadges(BadgesText);
+            Badges = TwitchChatRegex.BuildBadges(badgesText);
             User = TwitchUserManager.AddUser(username);
             User.SetData(idUser, displayName, Badges);
 
