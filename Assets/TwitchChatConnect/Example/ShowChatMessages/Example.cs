@@ -11,7 +11,7 @@ public class Example : MonoBehaviour
     [SerializeField] private Transform panel;
     [SerializeField] private GameObject textPrefab;
 
-    void Start()
+    private void Start()
     {
         TwitchChatClient.instance.Init(() =>
             {
@@ -37,7 +37,7 @@ public class Example : MonoBehaviour
             });
     }
 
-    void ShowCommand(TwitchChatCommand chatCommand)
+    private void ShowCommand(TwitchChatCommand chatCommand)
     {
         TwitchConnectData a = ScriptableObject.CreateInstance<TwitchConnectData>();
         string parameters = string.Join(" - ", chatCommand.Parameters);
@@ -58,7 +58,7 @@ public class Example : MonoBehaviour
         AddText(message);
     }
 
-    void ShowReward(TwitchChatReward chatReward)
+    private void ShowReward(TwitchChatReward chatReward)
     {
         string message =
             $"Reward unlocked by {chatReward.User.DisplayName} - " +
@@ -72,7 +72,7 @@ public class Example : MonoBehaviour
         AddText(message);
     }
 
-    void ShowMessage(TwitchChatMessage chatMessage)
+    private void ShowMessage(TwitchChatMessage chatMessage)
     {
         string message =
             $"Message by {chatMessage.User.DisplayName} - " +

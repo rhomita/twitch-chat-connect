@@ -1,23 +1,21 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System.Net.Sockets;
+﻿using System.Collections;
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Net.Sockets;
 using TwitchChatConnect.Config;
 using TwitchChatConnect.Data;
 using TwitchChatConnect.Manager;
+using TwitchChatConnect.Parser;
+using UnityEngine;
 
 namespace TwitchChatConnect.Client
 {
     public class TwitchChatClient : MonoBehaviour
     {
-        [Header("Command prefix, by default is '!' (only 1 character)")] 
+        [Header("Command prefix, by default is '!' (only 1 character)")]
         [SerializeField]
         private string _commandPrefix = "!";
 
-        [Header("Optional init Twitch configuration")] 
+        [Header("Optional init Twitch configuration")]
         [SerializeField]
         private TwitchConnectData _initTwitchConnectData;
 
@@ -31,53 +29,27 @@ namespace TwitchChatConnect.Client
 
         private bool _isAuthenticated;
 
-        private static string COMMAND_NOTICE = "NOTICE";
-        private static string COMMAND_PING = "PING :tmi.twitch.tv";
-        private static string COMMAND_PONG = "PONG :tmi.twitch.tv";
-        private static string COMMAND_JOIN = "JOIN";
-        private static string COMMAND_PART = "PART";
-        private static string COMMAND_MESSAGE = "PRIVMSG";
-        private static string CUSTOM_REWARD_TEXT = "custom-reward-id";
-        private static char BADGES_SEPARATOR = ',';
-        private static char BADGE_SEPARATOR = '/';
+        private const string COMMAND_PONG = "PONG :tmi.twitch.tv";
 
         // For now we compare against the 'failed message' because there is not a message id for this: https://dev.twitch.tv/docs/irc/msg-id
-        private static string LOGIN_FAILED_MESSAGE = "Login authentication failed";
-
-        // For now we compare against the 'success message' + the username. https://dev.twitch.tv/docs/irc/guide
-        private static string LOGIN_SUCCESS_MESSAGE = ":tmi.twitch.tv 001";
+        private const string LOGIN_FAILED_MESSAGE = "Login authentication failed";
 
         // Custom error message when the username does not belong to the given user token, but the user token is valid.
-        private static string LOGIN_WRONG_USERNAME =
-            "The user token is correct but it does not belong to the given username.";
+        private const string LOGIN_WRONG_USERNAME = "The user token is correct but it does not belong to the given username.";
 
-        private readonly Regex
-            _joinRegexp = new Regex(@":(.+)!.*JOIN"); // :<user>!<user>@<user>.tmi.twitch.tv JOIN #<channel>
-
-        private readonly Regex
-            _partRegexp = new Regex(@":(.+)!.*PART"); // :<user>!<user>@<user>.tmi.twitch.tv PART #<channel>
-
-        private readonly Regex _messageRegexp =
-            new Regex(@"badges=(.+?);.*display\-name=(.+?);.*user\-id=(.+?);.*:(.*)!.*PRIVMSG.+:(.*)");
-
-        private readonly Regex _rewardRegexp =
-            new Regex(@"badges=(.+?);.*custom\-reward\-id=(.+?);.*display\-name=(.+?);.*user\-id=(.+?);.*:(.*)!.*PRIVMSG.+:(.*)");
-
-        private readonly Regex _idMessageRegexp = new Regex(@"msg-id=(.+?);");
-
-        private Regex _cheerRegexp = new Regex(@"(?:\s|^)cheer([0-9]+)(?:\s|$)", RegexOptions.IgnoreCase);
+        public string CommandPrefix => _commandPrefix;
 
         public delegate void OnChatMessageReceived(TwitchChatMessage chatMessage);
-
-        public OnChatMessageReceived onChatMessageReceived;
+        public OnChatMessageReceived onChatMessageReceived { get; set; }
 
         public delegate void OnChatCommandReceived(TwitchChatCommand chatCommand);
-
-        public OnChatCommandReceived onChatCommandReceived;
+        public OnChatCommandReceived onChatCommandReceived { get; set; }
 
         public delegate void OnChatRewardReceived(TwitchChatReward chatReward);
+        public OnChatRewardReceived onChatRewardReceived { get; set; }
 
-        public OnChatRewardReceived onChatRewardReceived;
+        public delegate void OnTwitchInputLine(TwitchInputLine twitchInput);
+        public OnTwitchInputLine onTwitchInputLine { get; set; }
 
         public delegate void OnError(string errorMessage);
 
@@ -87,7 +59,7 @@ namespace TwitchChatConnect.Client
 
         public static TwitchChatClient instance { get; private set; }
 
-        void Awake()
+        private void Awake()
         {
             if (instance == null)
             {
@@ -100,9 +72,9 @@ namespace TwitchChatConnect.Client
             }
         }
 
-        #endregion
+        #endregion Singleton
 
-        void FixedUpdate()
+        private void FixedUpdate()
         {
             if (!IsConnected()) return;
             ReadChatLine();
@@ -142,7 +114,7 @@ namespace TwitchChatConnect.Client
                 return;
             }
 
-            if (String.IsNullOrEmpty(_commandPrefix)) _commandPrefix = "!";
+            if (string.IsNullOrEmpty(_commandPrefix)) _commandPrefix = "!";
 
             if (_commandPrefix.Length > 1)
             {
@@ -174,136 +146,86 @@ namespace TwitchChatConnect.Client
             _writer.Flush();
         }
 
+        private void OnApplicationQuit() => CloseTcpClient();
+
+        private void OnDestroy() => CloseTcpClient();
+
+        private void CloseTcpClient()
+        {
+            if (_twitchClient == null) return;
+            try
+            {
+                _twitchClient.Close();
+                _twitchClient.Dispose();
+                _twitchClient = null;
+                Debug.Log($"<color=orange>Twitch Disconnected</color>");
+            }
+            catch { }
+        }
+
         private void ReadChatLine()
         {
             if (_twitchClient.Available <= 0) return;
-            string message = _reader.ReadLine();
-            if (message == null) return;
-            if (message.Length == 0) return;
+            string source = _reader.ReadLine();
+            TwitchInputLine inputLine = new TwitchInputLine(source, _commandPrefix);
+            onTwitchInputLine?.Invoke(inputLine);            
 
-            if (message.StartsWith($"{LOGIN_SUCCESS_MESSAGE}"))
+            switch (inputLine.Type)
             {
-                if (message.StartsWith($"{LOGIN_SUCCESS_MESSAGE} {_twitchConnectConfig.Username}"))
-                {
-                    _isAuthenticated = true;
-                    _onSuccess?.Invoke();
-                    _onSuccess = null;
-                    return;
-                }
+                case TwitchInputType.LOGIN:
+                    if (inputLine.IsValidLogin(_twitchConnectConfig))
+                    {
+                        _isAuthenticated = true;
+                        _onSuccess?.Invoke();
+                        _onSuccess = null;
+                        Debug.Log("<color=green>¡Success Twitch Connection!</color>");
+                    }
+                    else
+                    {
+                        _onError?.Invoke(LOGIN_WRONG_USERNAME);
+                        _onError = null;
+                        Debug.Log("<color=red>¡Error Twitch Connection!</color>");
+                    }
+                    break;
 
-                // In this case the user token is valid, but the username does not belong to the given token.
-                _onError?.Invoke(LOGIN_WRONG_USERNAME);
-                _onError = null;
-                return;
+                case TwitchInputType.NOTICE:
+                    _onError?.Invoke(LOGIN_FAILED_MESSAGE);
+                    _onError = null;
+                    break;
+
+                case TwitchInputType.PING:
+                    _writer.WriteLine(COMMAND_PONG);
+                    _writer.Flush();
+                    break;
+
+                case TwitchInputType.MESSAGE_COMMAND:
+                    {
+                        TwitchChatMessageParser payload = new TwitchChatMessageParser(inputLine);
+                        TwitchChatCommand chatCommand = new TwitchChatCommand(payload.User, payload.Sent, payload.Bits, payload.Id);
+                        onChatCommandReceived?.Invoke(chatCommand);
+                    }
+                    break;
+
+                case TwitchInputType.MESSAGE_CHAT:
+                    {
+                        TwitchChatMessageParser payload = new TwitchChatMessageParser(inputLine);
+                        TwitchChatMessage chatMessage = new TwitchChatMessage(payload.User, payload.Sent, payload.Bits, payload.Id);
+                        onChatMessageReceived?.Invoke(chatMessage);
+                    }
+                    break;
+
+                case TwitchInputType.MESSAGE_REWARD:
+                    {
+                        TwitchChatRewardParser payload = new TwitchChatRewardParser(inputLine);
+                        TwitchChatReward chatReward = new TwitchChatReward(payload.User, payload.Sent, payload.Id);
+                        onChatRewardReceived?.Invoke(chatReward);
+                    }
+                    break;
+
+                case TwitchInputType.JOIN: TwitchUserManager.AddUser(inputLine.UserName); break;
+
+                case TwitchInputType.PART: TwitchUserManager.RemoveUser(inputLine.UserName); break;
             }
-
-            if (message.Contains(COMMAND_NOTICE) && message.Contains(LOGIN_FAILED_MESSAGE))
-            {
-                _onError?.Invoke(LOGIN_FAILED_MESSAGE);
-                _onError = null;
-                return;
-            }
-
-            if (message.Contains(COMMAND_PING))
-            {
-                _writer.WriteLine(COMMAND_PONG);
-                _writer.Flush();
-                return;
-            }
-
-            if (message.Contains(COMMAND_MESSAGE))
-            {
-                if (message.Contains(CUSTOM_REWARD_TEXT))
-                {
-                    ReadChatReward(message);
-                }
-                else
-                {
-                    ReadChatMessage(message);
-                }
-            }
-            else if (message.Contains(COMMAND_JOIN))
-            {
-                string username = _joinRegexp.Match(message).Groups[1].Value;
-                TwitchUserManager.AddUser(username);
-            }
-            else if (message.Contains(COMMAND_PART))
-            {
-                string username = _partRegexp.Match(message).Groups[1].Value;
-                TwitchUserManager.RemoveUser(username);
-            }
-        }
-
-        private void ReadChatMessage(string message)
-        {
-            string badgesText = _messageRegexp.Match(message).Groups[1].Value;
-            string displayName = _messageRegexp.Match(message).Groups[2].Value;
-            string idUser = _messageRegexp.Match(message).Groups[3].Value;
-            string username = _messageRegexp.Match(message).Groups[4].Value;
-            string messageSent = _messageRegexp.Match(message).Groups[5].Value;
-
-            if (messageSent.Length == 0) return;
-
-            List<TwitchUserBadge> badges = BuildBadges(badgesText);
-
-            TwitchUser twitchUser = TwitchUserManager.AddUser(username);
-            twitchUser.SetData(idUser, displayName, badges);
-
-            int bits = 0;
-            MatchCollection matches = _cheerRegexp.Matches(messageSent);
-            foreach (Match match in matches)
-            {
-                if (match.Groups.Count != 2) continue; // First group is 'cheerXX', second group is XX.
-                string value = match.Groups[1].Value;
-                if (!Int32.TryParse(value, out int bitsAmount)) continue;
-                bits += bitsAmount;
-            }
-
-            string idMessage = _idMessageRegexp.Match(message).Groups[1].Value;
-            if (messageSent[0] == _commandPrefix[0])
-            {
-                TwitchChatCommand chatCommand = new TwitchChatCommand(twitchUser, messageSent, bits, idMessage);
-                onChatCommandReceived?.Invoke(chatCommand);
-            }
-            else
-            {
-                TwitchChatMessage chatMessage = new TwitchChatMessage(twitchUser, messageSent, bits, idMessage);
-                onChatMessageReceived?.Invoke(chatMessage);
-            }
-        }
-
-        private void ReadChatReward(string message)
-        {
-            string badgesText = _rewardRegexp.Match(message).Groups[1].Value;
-            string customRewardId = _rewardRegexp.Match(message).Groups[2].Value;
-            string displayName = _rewardRegexp.Match(message).Groups[3].Value;
-            string idUser = _rewardRegexp.Match(message).Groups[4].Value;
-            string username = _rewardRegexp.Match(message).Groups[5].Value;
-            string messageSent = _rewardRegexp.Match(message).Groups[6].Value;
-
-            List<TwitchUserBadge> badges = BuildBadges(badgesText);
-
-            TwitchUser twitchUser = TwitchUserManager.AddUser(username);
-            twitchUser.SetData(idUser, displayName, badges);
-
-            TwitchChatReward chatReward = new TwitchChatReward(twitchUser, messageSent, customRewardId);
-            onChatRewardReceived?.Invoke(chatReward);
-        }
-
-        private static List<TwitchUserBadge> BuildBadges(string badgesText)
-        {
-            List<TwitchUserBadge> badges = new List<TwitchUserBadge>();
-            foreach (string badge in badgesText.Split(BADGES_SEPARATOR))
-            {
-                string[] badgeSplit = badge.Split(BADGE_SEPARATOR);
-                string name = badgeSplit[0];
-                if (badgeSplit.Length != 2) continue; // It should contains two parts <badge name>/<version>
-                string versionText = badgeSplit[1];
-                if (!Int32.TryParse(versionText, out int version)) version = 0;
-                badges.Add(new TwitchUserBadge(name, version));
-            }
-
-            return badges;
         }
 
         /// <summary>
