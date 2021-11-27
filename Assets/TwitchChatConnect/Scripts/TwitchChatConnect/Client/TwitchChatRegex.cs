@@ -7,6 +7,7 @@ namespace TwitchChatConnect.Client
     public static class TwitchChatRegex
     {
         public const string LOGIN_FAILED_MESSAGE = "Login authentication failed";
+        public const string LOGIN_WRONG_REQUEST_MESSAGE = "Improperly formatted auth";
         public const string LOGIN_SUCCESS_MESSAGE = ":tmi.twitch.tv 001";
         public const string LOGIN_WRONG_USERNAME = "The user token is correct but it does not belong to the given username.";
         public const string COMMAND_NOTICE = "NOTICE";

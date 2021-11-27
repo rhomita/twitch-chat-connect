@@ -19,7 +19,7 @@ namespace TwitchChatConnect.Client
 
             Message = message;
             if (message.StartsWith(TwitchChatRegex.LOGIN_SUCCESS_MESSAGE)) Type = TwitchInputType.LOGIN;
-            else if (message.Contains(TwitchChatRegex.COMMAND_NOTICE) && message.Contains(TwitchChatRegex.LOGIN_FAILED_MESSAGE)) Type = TwitchInputType.NOTICE;
+            else if (message.Contains(TwitchChatRegex.COMMAND_NOTICE)) Type = TwitchInputType.NOTICE;
             else if (message.Contains(TwitchChatRegex.COMMAND_PING)) Type = TwitchInputType.PING;
             else if (message.Contains(TwitchChatRegex.COMMAND_MESSAGE) && message.Contains(TwitchChatRegex.CUSTOM_REWARD_TEXT)) Type = TwitchInputType.MESSAGE_REWARD;
             else if (message.Contains(TwitchChatRegex.COMMAND_MESSAGE)) Type = IsCommandPrefix(prefix) ? TwitchInputType.MESSAGE_COMMAND : TwitchInputType.MESSAGE_CHAT;

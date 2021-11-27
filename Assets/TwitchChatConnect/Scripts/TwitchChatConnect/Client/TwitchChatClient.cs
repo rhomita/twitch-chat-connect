@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.IO;
 using System.Net.Sockets;
 using TwitchChatConnect.Config;
@@ -33,6 +34,8 @@ namespace TwitchChatConnect.Client
 
         // For now we compare against the 'failed message' because there is not a message id for this: https://dev.twitch.tv/docs/irc/msg-id
         private const string LOGIN_FAILED_MESSAGE = "Login authentication failed";
+        private const string LOGIN_WRONG_REQUEST_MESSAGE = "Wrong token format. It needs to start with 'oauth:'";
+        private const string LOGIN_UNEXPECTED_ERROR_MESSAGE = "Unexpected error.";
 
         // Custom error message when the username does not belong to the given user token, but the user token is valid.
         private const string LOGIN_WRONG_USERNAME = "The user token is correct but it does not belong to the given username.";
@@ -184,13 +187,31 @@ namespace TwitchChatConnect.Client
                     {
                         _onError?.Invoke(LOGIN_WRONG_USERNAME);
                         _onError = null;
-                        Debug.Log("<color=red>¡Error Twitch Connection!</color>");
+                        Debug.Log("<color=red>¡Error Twitch Connection: Token is valid but it belongs to another user!</color>");
                     }
                     break;
 
                 case TwitchInputType.NOTICE:
-                    _onError?.Invoke(LOGIN_FAILED_MESSAGE);
+                    string lineMessage = inputLine.Message;
+                    string userErrorMessage;
+                    string errorMessage;
+                    if (lineMessage.Contains(TwitchChatRegex.LOGIN_FAILED_MESSAGE))
+                    {
+                        userErrorMessage = LOGIN_FAILED_MESSAGE;
+                        errorMessage = LOGIN_FAILED_MESSAGE;
+                    } else if (lineMessage.Contains(TwitchChatRegex.LOGIN_WRONG_REQUEST_MESSAGE))
+                    {
+                        userErrorMessage = LOGIN_WRONG_REQUEST_MESSAGE;
+                        errorMessage = LOGIN_WRONG_REQUEST_MESSAGE;
+                    }
+                    else
+                    {
+                        userErrorMessage = LOGIN_UNEXPECTED_ERROR_MESSAGE;
+                        errorMessage = lineMessage;
+                    }
+                    _onError?.Invoke(userErrorMessage);
                     _onError = null;
+                    Debug.Log($"<color=red>Twitch connection error: {errorMessage}</color>");
                     break;
 
                 case TwitchInputType.PING:

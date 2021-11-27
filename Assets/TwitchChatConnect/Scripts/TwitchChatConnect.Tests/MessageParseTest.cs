@@ -14,6 +14,13 @@ public class MessageParseTest
         Assert.IsTrue(new TwitchInputLine(PAYLOAD, COMMAND_PREFIX).Type == TwitchInputType.LOGIN);
     }
 
+    [Test(Description = "Checks that the notice payload can be parsed.")]
+    public void ReadMessageNoticeTest()
+    {
+        const string PAYLOAD = ":tmi.twitch.tv NOTICE * :Improperly formatted auth";
+        Assert.IsTrue(new TwitchInputLine(PAYLOAD, COMMAND_PREFIX).Type == TwitchInputType.NOTICE);
+    }
+    
     [Test(Description = "Checks that the 'join' payload can be parsed.")]
     public void ReadMessageJoinTest()
     {
