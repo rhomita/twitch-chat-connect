@@ -250,6 +250,17 @@ namespace TwitchChatConnect.Client
             return true;
         }
 
+        /// <summary>
+        /// Sends a whisper message to a user.
+        /// </summary>
+        /// <param name="username">Username that will receive the whisper.</param>
+        /// <param name="message">message to be included in the whisper</param>
+        public void SendWhisper(string username, string message)
+        {
+            _writer.WriteLine($"PRIVMSG #jtv :/w {username} {message}");
+            _writer.Flush();
+        }
+
         private IEnumerator SendTwitchChatMessageWithDelay(string message, float seconds)
         {
             yield return new WaitForSeconds(seconds);

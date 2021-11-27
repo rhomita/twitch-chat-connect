@@ -84,6 +84,7 @@ public class Example : MonoBehaviour
             $"Is highlighted: {chatMessage.IsHighlighted} - " +
             $"Message: {chatMessage.Message}";
         AddText(message);
+        TwitchChatClient.instance.SendWhisper(chatMessage.User.Username, "Thanks for your message!");
     }
 
     private void AddText(string message)
