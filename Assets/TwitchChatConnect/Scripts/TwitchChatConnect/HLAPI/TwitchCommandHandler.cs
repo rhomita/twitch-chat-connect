@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using TwitchChatConnect.Data;
@@ -83,11 +84,25 @@ namespace TwitchChatConnect.HLAPI
                         }
 
                         string value = command.Parameters[attribute.Position];
-                        if (property.PropertyType == typeof(string)) property.SetValue(template, value);
-                        else if (property.PropertyType == typeof(int) && int.TryParse(Regex.Replace(value, "[^A-Za-z0-9 -]", ""), out int intValue)) property.SetValue(template, intValue);
-                        else if (property.PropertyType == typeof(float) && float.TryParse(value.Replace(".", ",").Replace("f", ""), out float floatValue)) property.SetValue(template, floatValue);
-                        else Logger.Error($"{nameof(T)} command property {property.Name} invalid type, require {property.PropertyType}");
-
+                        if (property.PropertyType == typeof(string))
+                        {
+                            property.SetValue(template, value);
+                        }
+                        else if (property.PropertyType == typeof(int) &&
+                                 int.TryParse(Regex.Replace(value, "[^A-Za-z0-9 -]", ""), out int intValue))
+                        {
+                            property.SetValue(template, intValue);
+                        }
+                        else if (property.PropertyType == typeof(float) &&
+                                 float.TryParse(value.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Replace("f", ""), out float floatValue))
+                        {
+                            property.SetValue(template, floatValue);
+                        }
+                        else
+                        {
+                            Logger.Error($"{nameof(T)} command property {property.Name} invalid type, require {property.PropertyType}");
+                        }
+                        
                         requiredProperties.RemoveWhere(x => x.Position == attribute.Position);
                     }
                 }

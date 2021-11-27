@@ -24,14 +24,14 @@ namespace TwitchChatConnect.Tests
             _handler = new TwitchCommandHandler(COMMAND_PREFIX);
         }
 
-        [Test(Description = "Verificar que se puede registrar un comando")]
+        [Test(Description = "Checks that a command can be registered.")]
         public void RegisterTest()
         {
             Initialize();
             Assert.IsTrue(_handler.Register<TwitchCommandEmpty>(COMMAND_NAME, (payload) => { }));
         }
 
-        [Test(Description = "Verificar que no se puede registrar un comando ya registrado")]
+        [Test(Description = "Checks that a command cannot be registered twice.")]
         public void RegisterDuplicatedTest()
         {
             Initialize();
@@ -39,7 +39,7 @@ namespace TwitchChatConnect.Tests
             Assert.IsFalse(_handler.Register<TwitchCommandEmpty>(COMMAND_NAME, (payload) => { }));
         }
 
-        [Test(Description = "Verificar que se puede procesar un comando registrado")]
+        [Test(Description = "Checks that a registered command can be processed.")]
         public void ProcessCommand()
         {
             Initialize();

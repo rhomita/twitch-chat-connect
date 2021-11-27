@@ -3,6 +3,7 @@ using TwitchChatConnect.Client;
 using TwitchChatConnect.Data;
 using TwitchChatConnect.HLAPI;
 using TwitchChatConnect.Parser;
+using UnityEngine;
 
 namespace TwitchChatConnect.Tests
 {
@@ -24,6 +25,9 @@ namespace TwitchChatConnect.Tests
 
             [TwitchCommandProperty(2, true)]
             public float ParamFloat { get; set; }
+
+            [TwitchCommandProperty(3, true)]
+            public float SecondParamFloat { get; set; }
         }
 
         private void Initialize(string commandParams)
@@ -35,10 +39,10 @@ namespace TwitchChatConnect.Tests
             _handler = new TwitchCommandHandler(COMMAND_PREFIX);
         }
 
-        [Test(Description = "Verificar que los valores se puedan parsear")]
+        [Test(Description = "Verifies that all values can be parsed.")]
         public void ParseValuesTest()
         {
-            Initialize("string 5165 0,2");
+            Initialize("string 5165 0,2 0.3");
             TwitchCommandTestAttributes commandPayload = null;
             _handler.Register<TwitchCommandTestAttributes>(COMMAND_NAME, (payload) => commandPayload = payload);
             _handler.ProcessCommand(_command);
@@ -46,9 +50,10 @@ namespace TwitchChatConnect.Tests
             Assert.IsTrue(commandPayload.ParamString == "string", "invalid STRING parse");
             Assert.IsTrue(commandPayload.ParamInt == 5165, "invalid INT parse");
             Assert.IsTrue(commandPayload.ParamFloat == 0.2f, "invalid FLOAT parse");
+            Assert.IsTrue(commandPayload.SecondParamFloat == 0.3f, "invalid FLOAT parse");
         }
 
-        [Test(Description = "Verificar que lance una excepción cuando un parámetro requerido no es enviado")]
+        [Test(Description = "Checks that an exception is thrown when a required parameter is not sent.")]
         public void RequiredParamTest()
         {
             Initialize("string");

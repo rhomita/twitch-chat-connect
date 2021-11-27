@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: TwitchConnectData
   m_EditorClassIdentifier: 
   twitchConnectConfig:
-    username: francoe1
-    userToken: 
-    channelName: rhomita
+    username: USERNAME
+    userToken: USERNAME_TOKEN
+    channelName: USERNAME_CHANNEL
